@@ -19,9 +19,10 @@ Substitute placeholders into all xml content in .docx, .pptx, .xlsx including .p
 
 ### steps
 - Parsing step: pass in URL to template, output all of the placeholder strings within ((()))
-    - two functions: one that includes the raw numeric placeholders and shows duplicate placeholders (for testing templates), one that is just a unique list of the placeholders it needs, removing 123456=
-- Substitution step: pass in the results of the data request step to get the final office document
+- produces a list of every raw placeholder with its respective path and position within the file (for use when substituting)
+- take that list and create a unique list of the placeholders it needs, removing 123456= (for use in the data request step)
 - Data request step: pass in a URL to post the parsing step output to there, expecting json output with a value for each placeholder
+- Substitution step: pass in the results of the data request step to get the final office document
 - Download step: typically the user will click a link, all of the steps will happen and the browser must download the file to the user. Download filename could be passed in. Look for a filename in the response of the data request step. Use an appropriate content type of that applies.
 - Unit tests at the highest public level that contain actual test office docs.
 - Create sample
