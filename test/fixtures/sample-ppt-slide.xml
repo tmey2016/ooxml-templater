@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+       xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+       xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cSld>
+    <p:spTree>
+      <p:sp>
+        <p:txBody>
+          <a:p>
+            <a:r>
+              <a:t>Presentation Title: (((presentation.title)))</a:t>
+            </a:r>
+          </a:p>
+          <a:p>
+            <a:r>
+              <a:t>Presenter: (((presenter.name)))</a:t>
+            </a:r>
+          </a:p>
+          <a:p>
+            <a:r>
+              <a:t>Date: (((presentation.date)))</a:t>
+            </a:r>
+          </a:p>
+        </p:txBody>
+      </p:sp>
+      <p:sp>
+        <p:txBody>
+          <a:p>
+            <a:r>
+              <a:t>(((DeleteSlideIfEmpty=optional.slide.content)))</a:t>
+            </a:r>
+          </a:p>
+        </p:txBody>
+      </p:sp>
+    </p:spTree>
+  </p:cSld>
+</p:sld>

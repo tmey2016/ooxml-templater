@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheetData>
+    <row r="1">
+      <c r="A1" t="inlineStr">
+        <is>
+          <t>Product Name: (((product.name)))</t>
+        </is>
+      </c>
+      <c r="B1" t="inlineStr">
+        <is>
+          <t>Price: $(((product.price)))</t>
+        </is>
+      </c>
+    </row>
+    <row r="2">
+      <c r="A2" t="inlineStr">
+        <is>
+          <t>Quantity: (((product.quantity)))</t>
+        </is>
+      </c>
+      <c r="B2" t="inlineStr">
+        <is>
+          <t>Total: $(((product.total)))</t>
+        </is>
+      </c>
+    </row>
+  </sheetData>
+</worksheet>

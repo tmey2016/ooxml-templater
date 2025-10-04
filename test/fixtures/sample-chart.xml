@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart"
+              xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+  <c:chart>
+    <c:title>
+      <c:tx>
+        <c:rich>
+          <a:p>
+            <a:r>
+              <a:t>Sales Chart: (((chart.title)))</a:t>
+            </a:r>
+          </a:p>
+        </c:rich>
+      </c:tx>
+    </c:title>
+    <c:plotArea>
+      <c:pieChart>
+        <c:ser>
+          <c:val>
+            <c:numLit>
+              <c:pt idx="0">
+                <c:v>(((123456=sales.q1)))</c:v>
+              </c:pt>
+              <c:pt idx="1">
+                <c:v>(((789012=sales.q2)))</c:v>
+              </c:pt>
+              <c:pt idx="2">
+                <c:v>(((345678=sales.q3)))</c:v>
+              </c:pt>
+              <c:pt idx="3">
+                <c:v>(((901234=sales.q4)))</c:v>
+              </c:pt>
+            </c:numLit>
+          </c:val>
+        </c:ser>
+      </c:pieChart>
+    </c:plotArea>
+  </c:chart>
+</c:chartSpace>
