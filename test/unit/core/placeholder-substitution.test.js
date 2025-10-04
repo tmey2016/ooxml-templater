@@ -423,5 +423,34 @@ describe('PlaceholderSubstitution', () => {
 
       expect(result.content).toContain('(((placeholder)))'); // Should preserve placeholder
     });
+
+    test('should handle exceptions in substitutePlaceholder without strict mode', () => {
+      const substitutionNoStrict = new PlaceholderSubstitution({ strictMode: false });
+
+      // Mock replaceInContent to throw an error
+      const originalReplace = substitutionNoStrict.replaceInContent;
+      substitutionNoStrict.replaceInContent = () => {
+        throw new Error('Simulated error');
+      };
+
+      const placeholder = {
+        cleanName: 'test',
+        rawMatch: '(((test)))',
+        position: { index: 5, length: 11 },
+        type: 'string'
+      };
+      const content = 'Some (((test))) content';
+      const data = { test: 'value' };
+
+      try {
+        const result = substitutionNoStrict.substitutePlaceholder(content, placeholder, data);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+        expect(result.content).toBe(content); // Original content preserved
+      } finally {
+        substitutionNoStrict.replaceInContent = originalReplace;
+      }
+    });
   });
 });

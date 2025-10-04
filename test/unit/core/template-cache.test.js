@@ -674,5 +674,39 @@ describe('TemplateCache', () => {
 
       cache.destroy();
     });
+
+    test('should clean expired entries from all cache types', () => {
+      const ttlCache = new TemplateCache({ ttl: 1000 });
+      ttlCache.stopCleanupTimer();
+
+      // Add entries to all cache types
+      ttlCache.setTemplate('t1', { data: 'template' });
+      ttlCache.setDocument('d1', { data: 'document' });
+      ttlCache.setData('data1', { value: 'test' });
+
+      expect(ttlCache.templateCache.size).toBe(1);
+      expect(ttlCache.documentCache.size).toBe(1);
+      expect(ttlCache.dataCache.size).toBe(1);
+
+      // Modify timestamps to simulate expiry
+      for (const [, entry] of ttlCache.templateCache) {
+        entry.timestamp = Date.now() - 2000;
+      }
+      for (const [, entry] of ttlCache.documentCache) {
+        entry.timestamp = Date.now() - 2000;
+      }
+      for (const [, entry] of ttlCache.dataCache) {
+        entry.timestamp = Date.now() - 2000;
+      }
+
+      const cleanedCount = ttlCache.cleanupExpiredEntries();
+
+      expect(cleanedCount).toBe(3); // All 3 entries should be cleaned
+      expect(ttlCache.templateCache.size).toBe(0);
+      expect(ttlCache.documentCache.size).toBe(0);
+      expect(ttlCache.dataCache.size).toBe(0);
+
+      ttlCache.destroy();
+    });
   });
 });
