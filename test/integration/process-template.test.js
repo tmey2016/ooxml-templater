@@ -36,7 +36,7 @@ describe('processTemplate Integration Tests', () => {
         await fs.unlink(path.join(outputDir, file));
       }
       await fs.rmdir(outputDir);
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -47,14 +47,17 @@ describe('processTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <document>
   <p>Invoice #(((invoice.number)))</p>
   <p>Customer: (((customer.name)))</p>
   <p>Email: (((customer.email)))</p>
   <p>Total: $(((invoice.total)))</p>
   <p>Date: (((invoice.date)))</p>
-</document>`));
+</document>`)
+      );
 
       templatePath = path.join(testTemplatesDir, 'invoice.docx');
       await fs.writeFile(templatePath, zip.toBuffer());
@@ -139,8 +142,11 @@ describe('processTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Report: (((report.title)))</p><p>Author: (((report.author)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Report: (((report.title)))</p><p>Author: (((report.author)))</p></document>`)
+      );
 
       templatePath = path.join(testTemplatesDir, 'report.docx');
       await fs.writeFile(templatePath, zip.toBuffer());
@@ -228,8 +234,11 @@ describe('processTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Data: (((test.value)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Data: (((test.value)))</p></document>`)
+      );
 
       templatePath = path.join(testTemplatesDir, 'buffer-test.docx');
       await fs.writeFile(templatePath, zip.toBuffer());
@@ -276,8 +285,11 @@ describe('processTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Name: (((user.name)))</p><p>Age: (((user.age)))</p><p>City: (((user.city)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Name: (((user.name)))</p><p>Age: (((user.age)))</p><p>City: (((user.city)))</p></document>`)
+      );
 
       templatePath = path.join(testTemplatesDir, 'options-test.docx');
       await fs.writeFile(templatePath, zip.toBuffer());
@@ -347,7 +359,9 @@ describe('processTemplate Integration Tests', () => {
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
 
       // Main document
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <document>
   <p>Contract Agreement</p>
   <p>Party A: (((contract.partyA)))</p>
@@ -355,11 +369,15 @@ describe('processTemplate Integration Tests', () => {
   <p>Effective Date: (((contract.effectiveDate)))</p>
   <p>Amount: $(((contract.amount)))</p>
   <p>Terms: (((contract.terms)))</p>
-</document>`));
+</document>`)
+      );
 
       // Header
-      zip.addFile('word/header1.xml', Buffer.from(`<?xml version="1.0"?>
-<header><p>Contract #(((contract.number)))</p></header>`));
+      zip.addFile(
+        'word/header1.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<header><p>Contract #(((contract.number)))</p></header>`)
+      );
 
       complexTemplatePath = path.join(testTemplatesDir, 'contract.docx');
       await fs.writeFile(complexTemplatePath, zip.toBuffer());

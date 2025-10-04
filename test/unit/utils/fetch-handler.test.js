@@ -15,19 +15,19 @@ describe('FetchHandler', () => {
   describe('detectMimeType', () => {
     it('should detect DOCX MIME type', () => {
       expect(detectMimeType('template.docx')).toBe(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       );
     });
 
     it('should detect PPTX MIME type', () => {
       expect(detectMimeType('presentation.pptx')).toBe(
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
       );
     });
 
     it('should detect XLSX MIME type', () => {
       expect(detectMimeType('spreadsheet.xlsx')).toBe(
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       );
     });
 
@@ -37,7 +37,7 @@ describe('FetchHandler', () => {
 
     it('should handle URLs with paths', () => {
       expect(detectMimeType('https://example.com/files/template.docx')).toBe(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       );
     });
   });
@@ -83,7 +83,7 @@ describe('FetchHandler', () => {
 
     it('should handle both query and hash', () => {
       expect(extractFilename('https://example.com/template.docx?v=1#section')).toBe(
-        'template.docx',
+        'template.docx'
       );
     });
 
@@ -106,7 +106,7 @@ describe('FetchHandler', () => {
       // Clean up test file
       try {
         await fs.unlink(testFilePath);
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     });
@@ -157,9 +157,8 @@ describe('FetchHandler', () => {
 
     it('should handle permission errors gracefully', async () => {
       // Try to read a system file that might not have permissions
-      const restrictedPath = process.platform === 'win32'
-        ? 'C:\\Windows\\System32\\config\\SAM'
-        : '/etc/shadow';
+      const restrictedPath =
+        process.platform === 'win32' ? 'C:\\Windows\\System32\\config\\SAM' : '/etc/shadow';
 
       try {
         await fetchTemplate(restrictedPath);
@@ -200,7 +199,7 @@ describe('FetchHandler', () => {
         'file:///path/to/template.xlsx',
       ];
 
-      validUrls.forEach(url => {
+      validUrls.forEach((url) => {
         expect(typeof url).toBe('string');
         expect(url.length).toBeGreaterThan(0);
       });
@@ -236,43 +235,29 @@ describe('FetchHandler', () => {
     });
 
     it('should handle HTTP 404 error', async () => {
-      nock('http://test.example.com')
-        .get('/missing.docx')
-        .reply(404, 'Not Found');
+      nock('http://test.example.com').get('/missing.docx').reply(404, 'Not Found');
 
-      await expect(
-        fetchTemplate('http://test.example.com/missing.docx')
-      ).rejects.toThrow('404');
+      await expect(fetchTemplate('http://test.example.com/missing.docx')).rejects.toThrow('404');
     });
 
     it('should handle HTTP 500 error', async () => {
-      nock('http://test.example.com')
-        .get('/error.docx')
-        .reply(500, 'Internal Server Error');
+      nock('http://test.example.com').get('/error.docx').reply(500, 'Internal Server Error');
 
-      await expect(
-        fetchTemplate('http://test.example.com/error.docx')
-      ).rejects.toThrow('500');
+      await expect(fetchTemplate('http://test.example.com/error.docx')).rejects.toThrow('500');
     });
 
     it('should handle HTTP 403 Forbidden', async () => {
-      nock('http://test.example.com')
-        .get('/forbidden.docx')
-        .reply(403, 'Forbidden');
+      nock('http://test.example.com').get('/forbidden.docx').reply(403, 'Forbidden');
 
-      await expect(
-        fetchTemplate('http://test.example.com/forbidden.docx')
-      ).rejects.toThrow('403');
+      await expect(fetchTemplate('http://test.example.com/forbidden.docx')).rejects.toThrow('403');
     });
 
     it('should successfully fetch and return buffer from URL', async () => {
       const testContent = Buffer.from('test document content');
 
-      nock('http://test.example.com')
-        .get('/success.docx')
-        .reply(200, testContent, {
-          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        });
+      nock('http://test.example.com').get('/success.docx').reply(200, testContent, {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
 
       const result = await fetchTemplate('http://test.example.com/success.docx');
 

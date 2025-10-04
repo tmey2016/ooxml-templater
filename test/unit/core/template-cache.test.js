@@ -164,7 +164,8 @@ describe('TemplateCache', () => {
       shortCache.setTemplate('key2', { data: 'test2' });
 
       // Manually expire entries
-      for (const [key, entry] of shortCache.templateCache) {
+      // eslint-disable-next-line no-unused-vars
+      for (const [_key, entry] of shortCache.templateCache) {
         entry.timestamp = Date.now() - 100;
       }
 
@@ -448,7 +449,8 @@ describe('TemplateCache', () => {
       expect(ttlCache.templateCache.size).toBe(2);
 
       // Manually modify timestamps to simulate expiry
-      for (const [key, entry] of ttlCache.templateCache) {
+      // eslint-disable-next-line no-unused-vars
+      for (const [_key, entry] of ttlCache.templateCache) {
         entry.timestamp = Date.now() - 2000; // 2 seconds ago
       }
 
@@ -519,14 +521,14 @@ describe('TemplateCache', () => {
       const lruCache = new TemplateCache({ maxSize: 2, enableLRU: true, ttl: 0 });
 
       lruCache.setTemplate('key1', { data: 'first' });
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       lruCache.setTemplate('key2', { data: 'second' });
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       // Access key1 to make it more recently used
       lruCache.getTemplate('key1');
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
       // Adding third should evict key2 (least recently used)
       lruCache.setTemplate('key3', { data: 'third' });
 
@@ -727,7 +729,7 @@ describe('TemplateCache', () => {
 
       // Wait for cleanup timer to run (it runs every ttl/4, so every 12.5ms)
       // Wait 50ms to ensure it runs at least once
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
 
       // After cleanup runs, the expired entry should be removed
       expect(autoCache.getTemplate('test')).toBeNull();

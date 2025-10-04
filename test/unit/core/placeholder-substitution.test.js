@@ -407,7 +407,7 @@ describe('PlaceholderSubstitution', () => {
       const parseResult = {
         fileMap,
         placeholders: { all: [], unique: [] },
-        deleteDirectives: [] // Add this field
+        deleteDirectives: [], // Add this field
       };
       const data = { test: 'value' };
       const xmlFiles = []; // No matching files
@@ -423,7 +423,7 @@ describe('PlaceholderSubstitution', () => {
       const placeholder = {
         cleanName: 'placeholder',
         rawMatch: '(((placeholder)))',
-        position: { index: 10, length: 19 }
+        position: { index: 10, length: 19 },
       };
       const data = {}; // Empty data
 
@@ -440,7 +440,7 @@ describe('PlaceholderSubstitution', () => {
         cleanName: 'test',
         rawMatch: '(((test)))',
         position: null, // This will cause error accessing position.index
-        type: 'string'
+        type: 'string',
       };
       const content = 'Some (((test))) content';
       const data = { test: 'value' };

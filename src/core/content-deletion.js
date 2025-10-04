@@ -24,7 +24,7 @@ class ContentDeletion {
    * @param {Object} extractedZip - Extracted ZIP structure
    * @returns {Object} Deletion result
    */
-  processDeleteDirectives(deleteDirectives, data, modifiedFiles, extractedZip) {
+  processDeleteDirectives(deleteDirectives, data, modifiedFiles, _extractedZip) {
     const deletionResults = {
       deletedPages: [],
       deletedSlides: [],
@@ -360,10 +360,7 @@ class ContentDeletion {
    */
   findPageBreakBefore(content, position) {
     // Look for page break patterns in reverse
-    const pageBreakPatterns = [
-      /<w:br\s+w:type=["']page["']\s*\/>/g,
-      /<w:sectPr[^>]*>/g,
-    ];
+    const pageBreakPatterns = [/<w:br\s+w:type=["']page["']\s*\/>/g, /<w:sectPr[^>]*>/g];
 
     let latestBreak = null;
     let latestBreakEnd = -1;
@@ -401,10 +398,7 @@ class ContentDeletion {
    */
   findPageBreakAfter(content, position) {
     // Look for page break patterns forward
-    const pageBreakPatterns = [
-      /<w:br\s+w:type=["']page["']\s*\/>/,
-      /<w:sectPr[^>]*>/,
-    ];
+    const pageBreakPatterns = [/<w:br\s+w:type=["']page["']\s*\/>/, /<w:sectPr[^>]*>/];
 
     const searchContent = content.slice(position);
     let earliestBreak = null;
@@ -473,11 +467,13 @@ class ContentDeletion {
 
       // Mark the entire slide file for deletion by emptying its content
       // The actual file removal will be handled by the ZIP handler
-      const deletedSlides = [{
-        directive: directives.map(d => d.cleanName).join(', '),
-        slideNumber,
-        filePath: file.path,
-      }];
+      const deletedSlides = [
+        {
+          directive: directives.map((d) => d.cleanName).join(', '),
+          slideNumber,
+          filePath: file.path,
+        },
+      ];
 
       return {
         success: true,
@@ -514,7 +510,11 @@ class ContentDeletion {
       // Find and remove the containing row element for each directive
 
       for (const directive of directives) {
-        const rowInfo = this.findContainingElement(modifiedContent, directive.position.index, 'row');
+        const rowInfo = this.findContainingElement(
+          modifiedContent,
+          directive.position.index,
+          'row'
+        );
         if (rowInfo) {
           // Remove the entire row element
           const beforeRow = modifiedContent.slice(0, rowInfo.start);

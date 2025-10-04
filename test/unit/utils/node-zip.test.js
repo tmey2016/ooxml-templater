@@ -126,8 +126,8 @@ describe('NodeZipHandler', () => {
 
       // Corrupt the buffer by modifying bytes
       const corruptBuffer = Buffer.from(validBuffer);
-      corruptBuffer[10] = 0xFF;
-      corruptBuffer[11] = 0xFF;
+      corruptBuffer[10] = 0xff;
+      corruptBuffer[11] = 0xff;
 
       // This might or might not throw depending on corruption - just verify it runs
       try {
@@ -177,9 +177,9 @@ describe('NodeZipHandler', () => {
     test('should skip invalid content types in create', async () => {
       const fileStructure = {
         'valid.xml': '<xml>valid</xml>',
-        'invalid': null, // Should be skipped
-        'invalid2': undefined, // Should be skipped
-        'invalid3': 12345, // Should be skipped
+        invalid: null, // Should be skipped
+        invalid2: undefined, // Should be skipped
+        invalid3: 12345, // Should be skipped
       };
 
       const zipBuffer = await NodeZipHandler.create(fileStructure);
@@ -188,7 +188,7 @@ describe('NodeZipHandler', () => {
 
       // Should only have the valid entry
       expect(entries.length).toBeGreaterThanOrEqual(1);
-      expect(entries.find(e => e.entryName === 'valid.xml')).toBeDefined();
+      expect(entries.find((e) => e.entryName === 'valid.xml')).toBeDefined();
     });
   });
 
@@ -228,9 +228,7 @@ describe('NodeZipHandler', () => {
     });
 
     test('should handle HTTP 404 when fetching remote ZIP', async () => {
-      nock('http://remote.example.com')
-        .get('/template.zip')
-        .reply(404, 'Not Found');
+      nock('http://remote.example.com').get('/template.zip').reply(404, 'Not Found');
 
       await expect(
         NodeZipHandler.extract('http://remote.example.com/template.zip')
@@ -238,9 +236,7 @@ describe('NodeZipHandler', () => {
     });
 
     test('should handle HTTP 500 server error when fetching ZIP', async () => {
-      nock('http://remote.example.com')
-        .get('/template.zip')
-        .reply(500, 'Server Error');
+      nock('http://remote.example.com').get('/template.zip').reply(500, 'Server Error');
 
       await expect(
         NodeZipHandler.extract('http://remote.example.com/template.zip')
@@ -254,9 +250,7 @@ describe('NodeZipHandler', () => {
       const zipBuffer = zip.toBuffer();
 
       // First request - should fetch
-      nock('http://cache.example.com')
-        .get('/template.zip')
-        .reply(200, zipBuffer);
+      nock('http://cache.example.com').get('/template.zip').reply(200, zipBuffer);
 
       const result1 = await NodeZipHandler.extract('http://cache.example.com/template.zip');
       expect(result1.files['test.txt']).toBeDefined();

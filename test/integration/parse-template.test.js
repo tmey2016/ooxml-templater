@@ -9,7 +9,7 @@ const AdmZip = require('adm-zip');
 
 describe('parseTemplate Integration Tests', () => {
   let templater;
-  const fixturesDir = path.join(__dirname, '../fixtures');
+  // const fixturesDir = path.join(__dirname, '../fixtures');
   const testTemplatesDir = path.join(__dirname, '../fixtures/integration-templates');
 
   beforeAll(async () => {
@@ -29,7 +29,7 @@ describe('parseTemplate Integration Tests', () => {
         await fs.unlink(path.join(testTemplatesDir, file));
       }
       await fs.rmdir(testTemplatesDir);
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -41,14 +41,19 @@ describe('parseTemplate Integration Tests', () => {
       // Create a realistic Word document template
       const zip = new AdmZip();
 
-      zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-</Types>`));
+</Types>`)
+      );
 
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>Dear (((customer.name))),</w:t></w:r></w:p>
@@ -56,12 +61,16 @@ describe('parseTemplate Integration Tests', () => {
     <w:p><w:r><w:t>Shipping address: (((customer.address)))</w:t></w:r></w:p>
     <w:p><w:r><w:t>(((DeletePageIfEmpty=optional.notes)))</w:t></w:r></w:p>
   </w:body>
-</w:document>`));
+</w:document>`)
+      );
 
-      zip.addFile('word/header1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'word/header1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:p><w:r><w:t>Invoice - (((company.name)))</w:t></w:r></w:p>
-</w:hdr>`));
+</w:hdr>`)
+      );
 
       docxTemplatePath = path.join(testTemplatesDir, 'invoice-template.docx');
       await fs.writeFile(docxTemplatePath, zip.toBuffer());
@@ -81,7 +90,9 @@ describe('parseTemplate Integration Tests', () => {
       const result = await templater.parseTemplate(docxTemplatePath);
 
       expect(result.template.type).toBe('docx');
-      expect(result.template.mimeType).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      expect(result.template.mimeType).toBe(
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      );
       expect(result.template.filename).toBe('invoice-template.docx');
       expect(result.template.url).toBe(docxTemplatePath);
     });
@@ -125,16 +136,21 @@ describe('parseTemplate Integration Tests', () => {
       // Create a realistic PowerPoint presentation template with chart
       const zip = new AdmZip();
 
-      zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>
   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
-</Types>`));
+</Types>`)
+      );
 
-      zip.addFile('ppt/slides/slide1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'ppt/slides/slide1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
   <p:cSld>
     <p:spTree>
@@ -147,9 +163,12 @@ describe('parseTemplate Integration Tests', () => {
       </p:sp>
     </p:spTree>
   </p:cSld>
-</p:sld>`));
+</p:sld>`)
+      );
 
-      zip.addFile('ppt/charts/chart1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'ppt/charts/chart1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
   <c:chart>
     <c:title>
@@ -176,9 +195,12 @@ describe('parseTemplate Integration Tests', () => {
       </c:pieChart>
     </c:plotArea>
   </c:chart>
-</c:chartSpace>`));
+</c:chartSpace>`)
+      );
 
-      zip.addFile('ppt/slides/slide2.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'ppt/slides/slide2.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
   <p:cSld>
     <p:spTree>
@@ -189,7 +211,8 @@ describe('parseTemplate Integration Tests', () => {
       </p:sp>
     </p:spTree>
   </p:cSld>
-</p:sld>`));
+</p:sld>`)
+      );
 
       pptxTemplatePath = path.join(testTemplatesDir, 'sales-presentation.pptx');
       await fs.writeFile(pptxTemplatePath, zip.toBuffer());
@@ -200,7 +223,9 @@ describe('parseTemplate Integration Tests', () => {
 
       expect(result.success).toBe(true);
       expect(result.template.type).toBe('pptx');
-      expect(result.template.mimeType).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
+      expect(result.template.mimeType).toBe(
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+      );
     });
 
     test('should find placeholders in slides', async () => {
@@ -220,7 +245,7 @@ describe('parseTemplate Integration Tests', () => {
       expect(result.placeholders.unique).toContain('sales.q3');
       expect(result.placeholders.unique).toContain('sales.q4');
 
-      const q1Directive = result.placeholders.numeric.find(n => n.cleanName === 'sales.q1');
+      const q1Directive = result.placeholders.numeric.find((n) => n.cleanName === 'sales.q1');
       expect(q1Directive.numericValue).toBe(100000);
 
       expect(result.statistics.numericDirectives).toBe(4);
@@ -248,15 +273,20 @@ describe('parseTemplate Integration Tests', () => {
       // Create a realistic Excel spreadsheet template
       const zip = new AdmZip();
 
-      zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
   <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-</Types>`));
+</Types>`)
+      );
 
-      zip.addFile('xl/worksheets/sheet1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'xl/worksheets/sheet1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <sheetData>
     <row r="1">
@@ -276,7 +306,8 @@ describe('parseTemplate Integration Tests', () => {
       <c r="B4" t="inlineStr"><is><t>$(((product.total)))</t></is></c>
     </row>
   </sheetData>
-</worksheet>`));
+</worksheet>`)
+      );
 
       xlsxTemplatePath = path.join(testTemplatesDir, 'product-report.xlsx');
       await fs.writeFile(xlsxTemplatePath, zip.toBuffer());
@@ -287,7 +318,9 @@ describe('parseTemplate Integration Tests', () => {
 
       expect(result.success).toBe(true);
       expect(result.template.type).toBe('xlsx');
-      expect(result.template.mimeType).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      expect(result.template.mimeType).toBe(
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      );
     });
 
     test('should find placeholders in worksheet', async () => {
@@ -345,7 +378,10 @@ describe('parseTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<?xml version="1.0"?><document>(((test.value)))</document>'));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<?xml version="1.0"?><document>(((test.value)))</document>')
+      );
 
       cachedTemplatePath = path.join(testTemplatesDir, 'cached-template.docx');
       await fs.writeFile(cachedTemplatePath, zip.toBuffer());
@@ -383,7 +419,9 @@ describe('parseTemplate Integration Tests', () => {
       // Create a PowerPoint with embedded Excel chart
       const zip = new AdmZip();
 
-      zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
@@ -391,9 +429,12 @@ describe('parseTemplate Integration Tests', () => {
   <Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>
   <Override PartName="/ppt/charts/chart1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>
   <Override PartName="/ppt/embeddings/Microsoft_Excel_Worksheet.xlsx" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"/>
-</Types>`));
+</Types>`)
+      );
 
-      zip.addFile('ppt/slides/slide1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'ppt/slides/slide1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
   <p:cSld>
     <p:spTree>
@@ -404,9 +445,12 @@ describe('parseTemplate Integration Tests', () => {
       </p:sp>
     </p:spTree>
   </p:cSld>
-</p:sld>`));
+</p:sld>`)
+      );
 
-      zip.addFile('ppt/charts/chart1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'ppt/charts/chart1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
   <c:chart>
     <c:plotArea>
@@ -424,19 +468,26 @@ describe('parseTemplate Integration Tests', () => {
       </c:barChart>
     </c:plotArea>
   </c:chart>
-</c:chartSpace>`));
+</c:chartSpace>`)
+      );
 
       // Embedded Excel file
       const embeddedZip = new AdmZip();
-      embeddedZip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      embeddedZip.addFile('xl/worksheets/sheet1.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      embeddedZip.addFile(
+        '[Content_Types].xml',
+        Buffer.from('<?xml version="1.0"?><Types></Types>')
+      );
+      embeddedZip.addFile(
+        'xl/worksheets/sheet1.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <sheetData>
     <row r="1">
       <c r="A1" t="inlineStr"><is><t>(((data.source)))</t></is></c>
     </row>
   </sheetData>
-</worksheet>`));
+</worksheet>`)
+      );
 
       zip.addFile('ppt/embeddings/Microsoft_Excel_Worksheet.xlsx', embeddedZip.toBuffer());
 
@@ -478,7 +529,9 @@ describe('parseTemplate Integration Tests', () => {
       const zip = new AdmZip();
 
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>Regular: (((user.name)))</w:t></w:r></w:p>
@@ -486,7 +539,8 @@ describe('parseTemplate Integration Tests', () => {
     <w:p><w:r><w:t>Delete: (((DeletePageIfEmpty=optional.section)))</w:t></w:r></w:p>
     <w:p><w:r><w:t>Duplicate: (((user.name)))</w:t></w:r></w:p>
   </w:body>
-</w:document>`));
+</w:document>`)
+      );
 
       mixedPlaceholdersPath = path.join(testTemplatesDir, 'mixed-placeholders.docx');
       await fs.writeFile(mixedPlaceholdersPath, zip.toBuffer());

@@ -464,11 +464,13 @@ describe('ContentDeletion', () => {
     test('should handle Word page deletion with no page breaks', () => {
       const content = '<w:p><w:r><w:t>Single page content</w:t></w:r></w:p>';
       const file = { path: 'word/document.xml', content };
-      const directives = [{
-        cleanName: 'test',
-        deleteType: 'page',
-        position: { index: 10 },
-      }];
+      const directives = [
+        {
+          cleanName: 'test',
+          deleteType: 'page',
+          position: { index: 10 },
+        },
+      ];
 
       const result = contentDeletion.deleteWordPage(file, directives);
 
@@ -490,11 +492,13 @@ describe('ContentDeletion', () => {
     test('should handle Excel row deletion when row element not found', () => {
       const content = '<sheetData><notARow>Content</notARow></sheetData>';
       const file = { path: 'xl/worksheets/sheet1.xml', content };
-      const directives = [{
-        cleanName: 'test',
-        deleteType: 'row',
-        position: { index: 20 }, // Position doesn't match any row element
-      }];
+      const directives = [
+        {
+          cleanName: 'test',
+          deleteType: 'row',
+          position: { index: 20 }, // Position doesn't match any row element
+        },
+      ];
 
       const result = contentDeletion.deleteExcelRow(file, directives);
 
@@ -612,7 +616,12 @@ describe('ContentDeletion', () => {
       ]);
 
       try {
-        const result = contentDeletion.processDeleteDirectives(directives, data, modifiedFiles, null);
+        const result = contentDeletion.processDeleteDirectives(
+          directives,
+          data,
+          modifiedFiles,
+          null
+        );
         // Should handle gracefully
         expect(result).toBeDefined();
       } catch (error) {
@@ -816,7 +825,7 @@ describe('ContentDeletion', () => {
       const directive = {
         position: { file: 'unknown.abc' },
         directive: 'DeleteSomethingIfEmpty',
-        cleanName: 'test'
+        cleanName: 'test',
       };
 
       const deleteType = contentDeletion.inferDeleteType(directive);
@@ -825,12 +834,14 @@ describe('ContentDeletion', () => {
 
     test('should handle processPageDeletions with exception', () => {
       const directives = new Map();
-      directives.set('document.xml', [{
-        position: { file: 'document.xml', start: 0 },
-        directive: 'DeletePageIfEmpty',
-        cleanName: 'test',
-        isEmpty: true
-      }]);
+      directives.set('document.xml', [
+        {
+          position: { file: 'document.xml', start: 0 },
+          directive: 'DeletePageIfEmpty',
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       // Provide content with a directive but make file.content undefined to trigger error
@@ -841,7 +852,7 @@ describe('ContentDeletion', () => {
         success: true,
         errors: [],
         deletedPages: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processPageDeletions(directives, results);
@@ -852,12 +863,14 @@ describe('ContentDeletion', () => {
 
     test('should handle processSlideDeletions with exception', () => {
       const directives = new Map();
-      directives.set('ppt/slides/slide1.xml', [{
-        position: { file: 'ppt/slides/slide1.xml', start: 0 },
-        directive: 'DeleteSlideIfEmpty',
-        cleanName: 'test',
-        isEmpty: true
-      }]);
+      directives.set('ppt/slides/slide1.xml', [
+        {
+          position: { file: 'ppt/slides/slide1.xml', start: 0 },
+          directive: 'DeleteSlideIfEmpty',
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       const brokenFile = { path: 'ppt/slides/slide1.xml', content: undefined };
@@ -868,7 +881,7 @@ describe('ContentDeletion', () => {
         errors: [],
         deletedSlides: [],
         filesToDelete: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processSlideDeletions(directives, results);
@@ -879,12 +892,14 @@ describe('ContentDeletion', () => {
 
     test('should handle processRowDeletions with exception', () => {
       const directives = new Map();
-      directives.set('xl/worksheets/sheet1.xml', [{
-        position: { file: 'xl/worksheets/sheet1.xml', start: 0 },
-        directive: 'DeleteRowIfEmpty',
-        cleanName: 'test',
-        isEmpty: true
-      }]);
+      directives.set('xl/worksheets/sheet1.xml', [
+        {
+          position: { file: 'xl/worksheets/sheet1.xml', start: 0 },
+          directive: 'DeleteRowIfEmpty',
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       const brokenFile = { path: 'xl/worksheets/sheet1.xml', content: undefined };
@@ -894,7 +909,7 @@ describe('ContentDeletion', () => {
         success: true,
         errors: [],
         deletedRows: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processRowDeletions(directives, results);
@@ -906,14 +921,16 @@ describe('ContentDeletion', () => {
     test('should trigger catch block in deleteWordPage', () => {
       const file = {
         path: 'document.xml',
-        content: '<w:document><w:body><w:p>Text</w:p></w:body></w:document>'
+        content: '<w:document><w:body><w:p>Text</w:p></w:body></w:document>',
       };
 
-      const directives = [{
-        position: { file: 'document.xml', start: 10 },
-        cleanName: 'test',
-        isEmpty: true
-      }];
+      const directives = [
+        {
+          position: { file: 'document.xml', start: 10 },
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ];
 
       // Mock findPageBoundaries to throw error
       const originalMethod = contentDeletion.findPageBoundaries;
@@ -934,14 +951,16 @@ describe('ContentDeletion', () => {
     test('should trigger catch block in deletePowerPointSlide', () => {
       const file = {
         path: 'ppt/slides/slide1.xml',
-        content: '<p:sld>content</p:sld>'
+        content: '<p:sld>content</p:sld>',
       };
 
-      const directives = [{
-        position: { file: 'ppt/slides/slide1.xml', start: 0 },
-        cleanName: 'test',
-        isEmpty: true
-      }];
+      const directives = [
+        {
+          position: { file: 'ppt/slides/slide1.xml', start: 0 },
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ];
 
       // Provide malformed file path to trigger error
       file.path = 'invalid-path-without-slide-number.xml';
@@ -955,14 +974,16 @@ describe('ContentDeletion', () => {
     test('should trigger catch block in deleteExcelRow', () => {
       const file = {
         path: 'xl/worksheets/sheet1.xml',
-        content: '<worksheet><sheetData><row>data</row></sheetData></worksheet>'
+        content: '<worksheet><sheetData><row>data</row></sheetData></worksheet>',
       };
 
-      const directives = [{
-        position: { file: 'xl/worksheets/sheet1.xml', start: 10 },
-        cleanName: 'test',
-        isEmpty: true
-      }];
+      const directives = [
+        {
+          position: { file: 'xl/worksheets/sheet1.xml', start: 10 },
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ];
 
       // Mock findContainingElement to throw error
       const originalMethod = contentDeletion.findContainingElement;
@@ -1001,7 +1022,8 @@ describe('ContentDeletion', () => {
     });
 
     test('should handle findPageBoundaries with malformed section properties', () => {
-      const malformedDoc = '<w:document><w:body><w:p><w:sectPr>no closing</w:p></w:body></w:document>';
+      const malformedDoc =
+        '<w:document><w:body><w:p><w:sectPr>no closing</w:p></w:body></w:document>';
 
       const boundaries = contentDeletion.findPageBoundaries(malformedDoc, 0);
 
@@ -1012,14 +1034,16 @@ describe('ContentDeletion', () => {
     test('should return success false when deleteWordPage gets invalid structure', () => {
       const file = {
         path: 'document.xml',
-        content: '<w:document><w:body>no sections</w:body></w:document>'
+        content: '<w:document><w:body>no sections</w:body></w:document>',
       };
 
-      const directives = [{
-        position: { file: 'document.xml', start: 10 },
-        cleanName: 'test',
-        isEmpty: true
-      }];
+      const directives = [
+        {
+          position: { file: 'document.xml', start: 10 },
+          cleanName: 'test',
+          isEmpty: true,
+        },
+      ];
 
       const result = contentDeletion.deleteWordPage(file, directives);
 
@@ -1030,24 +1054,27 @@ describe('ContentDeletion', () => {
 
     test('should handle processPageDeletions when deleteWordPage returns success false', () => {
       const directives = new Map();
-      directives.set('word/document.xml', [{
-        position: { file: 'word/document.xml', start: 10 },
-        cleanName: 'testPage',
-        isEmpty: true
-      }]);
+      directives.set('word/document.xml', [
+        {
+          position: { file: 'word/document.xml', start: 10 },
+          cleanName: 'testPage',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       // Provide file but with content that causes graceful failure
       modifiedFiles.set('word/document.xml', {
         path: 'word/document.xml',
-        content: '<w:document><w:body><w:p>text without proper section breaks</w:p></w:body></w:document>'
+        content:
+          '<w:document><w:body><w:p>text without proper section breaks</w:p></w:body></w:document>',
       });
 
       const results = {
         success: true,
         errors: [],
         deletedPages: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processPageDeletions(directives, results);
@@ -1062,16 +1089,18 @@ describe('ContentDeletion', () => {
 
     test('should handle processSlideDeletions when deletePowerPointSlide returns error', () => {
       const directives = new Map();
-      directives.set('ppt/slides/slide1.xml', [{
-        position: { file: 'ppt/slides/slide1.xml', start: 0 },
-        cleanName: 'testSlide',
-        isEmpty: true
-      }]);
+      directives.set('ppt/slides/slide1.xml', [
+        {
+          position: { file: 'ppt/slides/slide1.xml', start: 0 },
+          cleanName: 'testSlide',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       modifiedFiles.set('ppt/slides/slide1.xml', {
         path: 'ppt/slides/slide1.xml',
-        content: '<p:sld>incomplete slide structure'
+        content: '<p:sld>incomplete slide structure',
       });
 
       const results = {
@@ -1079,7 +1108,7 @@ describe('ContentDeletion', () => {
         errors: [],
         deletedSlides: [],
         filesToDelete: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processSlideDeletions(directives, results);
@@ -1090,23 +1119,25 @@ describe('ContentDeletion', () => {
 
     test('should handle processRowDeletions when deleteExcelRow returns error', () => {
       const directives = new Map();
-      directives.set('xl/worksheets/sheet1.xml', [{
-        position: { file: 'xl/worksheets/sheet1.xml', start: 10 },
-        cleanName: 'testRow',
-        isEmpty: true
-      }]);
+      directives.set('xl/worksheets/sheet1.xml', [
+        {
+          position: { file: 'xl/worksheets/sheet1.xml', start: 10 },
+          cleanName: 'testRow',
+          isEmpty: true,
+        },
+      ]);
 
       const modifiedFiles = new Map();
       modifiedFiles.set('xl/worksheets/sheet1.xml', {
         path: 'xl/worksheets/sheet1.xml',
-        content: '<worksheet>incomplete</worksheet>'
+        content: '<worksheet>incomplete</worksheet>',
       });
 
       const results = {
         success: true,
         errors: [],
         deletedRows: [],
-        modifiedFiles: modifiedFiles
+        modifiedFiles: modifiedFiles,
       };
 
       contentDeletion.processRowDeletions(directives, results);

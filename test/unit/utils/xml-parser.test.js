@@ -176,7 +176,9 @@ describe('XmlParser', () => {
     test('should handle errors in parseXmlContent', () => {
       // Mock extractTextContent to throw an error
       const originalExtract = XmlParser.extractTextContent;
-      XmlParser.extractTextContent = () => { throw new Error('Parse error'); };
+      XmlParser.extractTextContent = () => {
+        throw new Error('Parse error');
+      };
 
       try {
         const result = XmlParser.parseXmlContent('<test>content</test>');

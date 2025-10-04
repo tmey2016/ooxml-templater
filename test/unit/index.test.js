@@ -74,7 +74,7 @@ describe('OOXMLTemplater', () => {
 
     test('generateDocument should throw not implemented error', async () => {
       await expect(templater.generateDocument({}, {})).rejects.toThrow(
-        'generateDocument not yet implemented',
+        'generateDocument not yet implemented'
       );
     });
   });
@@ -92,8 +92,8 @@ describe('OOXMLTemplater', () => {
       zip.addFile(
         'word/document.xml',
         Buffer.from(
-          '<?xml version="1.0"?><document><body><p>(((user.name)))</p><p>(((user.email)))</p></body></document>',
-        ),
+          '<?xml version="1.0"?><document><body><p>(((user.name)))</p><p>(((user.email)))</p></body></document>'
+        )
       );
 
       testTemplatePath = path.join(__dirname, '../fixtures/parse-test-template.docx');
@@ -104,7 +104,7 @@ describe('OOXMLTemplater', () => {
     afterAll(async () => {
       try {
         await fs.unlink(testTemplatePath);
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     });
@@ -124,7 +124,7 @@ describe('OOXMLTemplater', () => {
 
       expect(result.template.type).toBe('docx');
       expect(result.template.mimeType).toBe(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       );
       expect(result.template.filename).toBe('parse-test-template.docx');
     });
@@ -234,7 +234,7 @@ describe('OOXMLTemplater', () => {
 
       await templater.fetchData('https://api.example.com/data', ['test'], {
         headers: {
-          'Authorization': 'Bearer token123',
+          Authorization: 'Bearer token123',
           'X-Custom-Header': 'value',
         },
       });
@@ -243,10 +243,10 @@ describe('OOXMLTemplater', () => {
         'https://api.example.com/data',
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Authorization': 'Bearer token123',
+            Authorization: 'Bearer token123',
             'X-Custom-Header': 'value',
           }),
-        }),
+        })
       );
     });
 
@@ -275,34 +275,34 @@ describe('OOXMLTemplater', () => {
       // Test with 'values' field
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ values: { 'test': 'value1' } }),
+        json: async () => ({ values: { test: 'value1' } }),
       });
 
       let result = await templater.fetchData('https://api.example.com/data', ['test']);
-      expect(result.data).toEqual({ 'test': 'value1' });
+      expect(result.data).toEqual({ test: 'value1' });
 
       // Test with 'placeholders' field
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ placeholders: { 'test': 'value2' } }),
+        json: async () => ({ placeholders: { test: 'value2' } }),
       });
 
       result = await templater.fetchData('https://api.example.com/data', ['test']);
-      expect(result.data).toEqual({ 'test': 'value2' });
+      expect(result.data).toEqual({ test: 'value2' });
 
       // Test with direct data (no wrapper)
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: async () => ({ 'test': 'value3' }),
+        json: async () => ({ test: 'value3' }),
       });
 
       result = await templater.fetchData('https://api.example.com/data', ['test']);
-      expect(result.data).toEqual({ 'test': 'value3' });
+      expect(result.data).toEqual({ test: 'value3' });
     });
 
     test('should include raw response when requested', async () => {
       const mockResponse = {
-        data: { 'test': 'value' },
+        data: { test: 'value' },
         metadata: { generated: true },
       };
 
@@ -346,7 +346,7 @@ describe('OOXMLTemplater', () => {
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
           }),
-        }),
+        })
       );
     });
   });
@@ -363,8 +363,8 @@ describe('OOXMLTemplater', () => {
       zip.addFile(
         'word/document.xml',
         Buffer.from(
-          '<?xml version="1.0"?><document><body><p>Hello (((user.name))), your email is (((user.email))).</p></body></document>',
-        ),
+          '<?xml version="1.0"?><document><body><p>Hello (((user.name))), your email is (((user.email))).</p></body></document>'
+        )
       );
 
       testTemplatePath = path.join(__dirname, '../fixtures/substitute-test-template.docx');
@@ -375,7 +375,7 @@ describe('OOXMLTemplater', () => {
     afterAll(async () => {
       try {
         await fs.unlink(testTemplatePath);
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     });
@@ -423,7 +423,7 @@ describe('OOXMLTemplater', () => {
       expect(result.template).toBeDefined();
       expect(result.template.type).toBe('docx');
       expect(result.template.mimeType).toBe(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       );
       expect(result.template.filename).toBe('substitute-test-template.docx');
     });
@@ -551,7 +551,8 @@ describe('OOXMLTemplater', () => {
     test('should handle write errors gracefully', async () => {
       const testBuffer = Buffer.from('Test');
       // Use a path that will definitely fail (no permissions or invalid chars)
-      const invalidPath = process.platform === 'win32' ? 'CON:\\invalid.docx' : '/proc/invalid.docx';
+      const invalidPath =
+        process.platform === 'win32' ? 'CON:\\invalid.docx' : '/proc/invalid.docx';
 
       const result = await templater.saveDocument(testBuffer, invalidPath);
 
@@ -582,8 +583,8 @@ describe('OOXMLTemplater', () => {
       zip.addFile(
         'word/document.xml',
         Buffer.from(
-          '<?xml version="1.0"?><document><p>Name: (((name))), Email: (((email)))</p></document>',
-        ),
+          '<?xml version="1.0"?><document><p>Name: (((name))), Email: (((email)))</p></document>'
+        )
       );
 
       testTemplatePath = path.join(__dirname, '../fixtures/process-test-template.docx');
@@ -593,7 +594,7 @@ describe('OOXMLTemplater', () => {
     afterAll(async () => {
       try {
         await fs.unlink(testTemplatePath);
-      } catch (error) {
+      } catch {
         // Ignore cleanup errors
       }
     });
@@ -725,7 +726,10 @@ describe('OOXMLTemplater', () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((test)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((test)))</w:t></w:p></w:body></w:document>')
+      );
 
       const tempFile = path.join(__dirname, 'temp-test.docx');
       await fs.writeFile(tempFile, zip.toBuffer());
@@ -798,7 +802,10 @@ describe('OOXMLTemplater', () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((missing)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((missing)))</w:t></w:p></w:body></w:document>')
+      );
 
       const tempFile = path.join(__dirname, 'strict-test.docx');
       await fs.writeFile(tempFile, zip.toBuffer());
@@ -818,14 +825,21 @@ describe('OOXMLTemplater', () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((placeholder)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(
+          '<w:document><w:body><w:p><w:t>(((placeholder)))</w:t></w:p></w:body></w:document>'
+        )
+      );
 
       const tempFile = path.join(__dirname, 'preserve-test.docx');
       await fs.writeFile(tempFile, zip.toBuffer());
 
       try {
         const data = {};
-        const result = await templater.substituteTemplate(tempFile, data, { preserveUnmatched: true });
+        const result = await templater.substituteTemplate(tempFile, data, {
+          preserveUnmatched: true,
+        });
 
         expect(result.success).toBe(true);
       } finally {
@@ -874,7 +888,7 @@ describe('OOXMLTemplater', () => {
       const placeholders = ['test'];
       const options = {
         headers: {
-          'Authorization': 'Bearer token123',
+          Authorization: 'Bearer token123',
           'X-Custom-Header': 'value',
         },
       };
@@ -1073,7 +1087,7 @@ describe('OOXMLTemplater', () => {
       const buffer = Buffer.from('test');
       const options = {
         filename: 'test.docx',
-        mimeType: 'application/custom'
+        mimeType: 'application/custom',
       };
 
       const result = templater.downloadDocument(buffer, options);
@@ -1085,7 +1099,7 @@ describe('OOXMLTemplater', () => {
 
       const extensions = ['test.docx', 'test.pptx', 'test.xlsx'];
 
-      extensions.forEach(filename => {
+      extensions.forEach((filename) => {
         const result = templater.downloadDocument(buffer, { filename });
         expect(result.success).toBe(false);
         expect(result.error).toBeDefined();
@@ -1126,8 +1140,8 @@ describe('OOXMLTemplater', () => {
 
   describe('Environment Detection', () => {
     test('should detect Node.js environment', () => {
-      const OOXMLTemplater = require('../../src/index');
-      const instance = new OOXMLTemplater();
+      // const OOXMLTemplater = require('../../src/index');
+      // const instance = new OOXMLTemplater();
 
       // In Node.js environment, certain browser features should not be available
       expect(typeof process).toBe('object');
@@ -1193,7 +1207,7 @@ describe('OOXMLTemplater', () => {
 
       try {
         await templater.processTemplate(testTemplatePath, data, {
-          outputPath: '/invalid/readonly/path/output.docx'
+          outputPath: '/invalid/readonly/path/output.docx',
         });
       } catch (error) {
         expect(error).toBeDefined();
@@ -1247,20 +1261,26 @@ describe('OOXMLTemplater', () => {
       // Create a test template
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>')
+      );
 
       const testTemplatePath = path.join(__dirname, 'url-fetch-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
 
       try {
         // Mock the API response
-        nock('http://api.example.com')
-          .post('/data')
-          .reply(200, {
-            name: 'John Doe',
-            email: 'john@example.com'
-          });
+        nock('http://api.example.com').post('/data').reply(200, {
+          name: 'John Doe',
+          email: 'john@example.com',
+        });
 
         const result = await templater.processTemplate(
           testTemplatePath,
@@ -1282,20 +1302,26 @@ describe('OOXMLTemplater', () => {
       // Create a test template
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>')
+      );
 
       const testTemplatePath = path.join(__dirname, 'filename-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
 
       try {
         // Mock API response with filename
-        nock('http://api.example.com')
-          .post('/data')
-          .reply(200, {
-            name: 'Test User',
-            _filename: 'custom-output.docx'
-          });
+        nock('http://api.example.com').post('/data').reply(200, {
+          name: 'Test User',
+          _filename: 'custom-output.docx',
+        });
 
         const result = await templater.processTemplate(
           testTemplatePath,
@@ -1313,16 +1339,22 @@ describe('OOXMLTemplater', () => {
       // Create a test template
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>')
+      );
 
       const testTemplatePath = path.join(__dirname, 'api-error-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
 
       try {
-        nock('http://api.example.com')
-          .post('/data')
-          .reply(500, { error: 'Server error' });
+        nock('http://api.example.com').post('/data').reply(500, { error: 'Server error' });
 
         const result = await templater.processTemplate(
           testTemplatePath,
@@ -1362,8 +1394,16 @@ describe('OOXMLTemplater', () => {
     test('should handle files with buffer property', async () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>')
+      );
 
       const testTemplatePath = path.join(__dirname, 'buffer-format-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
@@ -1381,8 +1421,16 @@ describe('OOXMLTemplater', () => {
     test('should handle string file data format', async () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((test)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from('<w:document><w:body><w:p><w:t>(((test)))</w:t></w:p></w:body></w:document>')
+      );
 
       const testTemplatePath = path.join(__dirname, 'string-format-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
@@ -1401,8 +1449,18 @@ describe('OOXMLTemplater', () => {
     test('should handle processTemplate with strictMode causing substitution to fail', async () => {
       const AdmZip = require('adm-zip');
       const zip = new AdmZip();
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((missingPlaceholder)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(
+          '<w:document><w:body><w:p><w:t>(((missingPlaceholder)))</w:t></w:p></w:body></w:document>'
+        )
+      );
 
       const testTemplatePath = path.join(__dirname, 'strict-fail-test.docx');
       await fs.writeFile(testTemplatePath, zip.toBuffer());
@@ -1411,7 +1469,7 @@ describe('OOXMLTemplater', () => {
         const data = { differentKey: 'value' }; // Missing 'missingPlaceholder'
 
         const result = await templater.processTemplate(testTemplatePath, data, {
-          substitutionOptions: { strictMode: true }
+          substitutionOptions: { strictMode: true },
         });
 
         // In strictMode, missing placeholders cause failure (line 450)
@@ -1428,8 +1486,18 @@ describe('OOXMLTemplater', () => {
       const zip = new AdmZip();
 
       // Create a more complex structure with different file types
-      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
-      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((title)))</w:t></w:p><w:p><w:t>(((content)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile(
+        '[Content_Types].xml',
+        Buffer.from(
+          '<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'
+        )
+      );
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(
+          '<w:document><w:body><w:p><w:t>(((title)))</w:t></w:p><w:p><w:t>(((content)))</w:t></w:p></w:body></w:document>'
+        )
+      );
       zip.addFile('word/header.xml', Buffer.from('<w:hdr><w:p><w:t>Header</w:t></w:p></w:hdr>'));
       zip.addFile('word/footer.xml', Buffer.from('<w:ftr><w:p><w:t>Footer</w:t></w:p></w:ftr>'));
 
@@ -1439,7 +1507,7 @@ describe('OOXMLTemplater', () => {
       try {
         const data = {
           title: 'Test Document',
-          content: 'This is test content'
+          content: 'This is test content',
         };
 
         const result = await templater.processTemplate(testTemplatePath, data);

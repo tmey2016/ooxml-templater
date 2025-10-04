@@ -33,7 +33,7 @@ describe('fetchData Integration Tests', () => {
                 'order.number': 'ORD-12345',
                 'order.total': '99.99',
               },
-            }),
+            })
           );
         } else if (req.url === '/api/data-with-filename') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -44,7 +44,7 @@ describe('fetchData Integration Tests', () => {
                 'report.date': '2025-10-03',
               },
               filename: 'company-report-2025-10-03.docx',
-            }),
+            })
           );
         } else if (req.url === '/api/error') {
           res.writeHead(404, { 'Content-Type': 'application/json' });
@@ -57,7 +57,7 @@ describe('fetchData Integration Tests', () => {
                 'product.name': 'Widget Pro',
                 'product.price': '29.99',
               },
-            }),
+            })
           );
         } else if (req.url === '/api/placeholders-format') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -67,7 +67,7 @@ describe('fetchData Integration Tests', () => {
                 'customer.id': 'CUST-001',
                 'customer.status': 'Active',
               },
-            }),
+            })
           );
         } else if (req.url === '/api/direct-format') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -75,7 +75,7 @@ describe('fetchData Integration Tests', () => {
             JSON.stringify({
               'invoice.number': 'INV-2025-001',
               'invoice.amount': '1250.00',
-            }),
+            })
           );
         } else if (req.url === '/api/auth-required') {
           const authHeader = req.headers['authorization'];
@@ -86,7 +86,7 @@ describe('fetchData Integration Tests', () => {
                 data: {
                   'secure.data': 'Authenticated',
                 },
-              }),
+              })
             );
           } else {
             res.writeHead(401, { 'Content-Type': 'application/json' });
@@ -216,15 +216,11 @@ describe('fetchData Integration Tests', () => {
 
   describe('Authentication and Headers', () => {
     test('should send custom headers to API', async () => {
-      const result = await templater.fetchData(
-        `${serverUrl}/api/auth-required`,
-        ['secure.data'],
-        {
-          headers: {
-            'Authorization': 'Bearer secret-token',
-          },
+      const result = await templater.fetchData(`${serverUrl}/api/auth-required`, ['secure.data'], {
+        headers: {
+          Authorization: 'Bearer secret-token',
         },
-      );
+      });
 
       expect(result.success).toBe(true);
       expect(result.data['secure.data']).toBe('Authenticated');
@@ -286,8 +282,8 @@ describe('fetchData Integration Tests', () => {
       zip.addFile(
         'word/document.xml',
         Buffer.from(
-          '<?xml version="1.0"?><document><p>(((user.name)))</p><p>(((user.email)))</p></document>',
-        ),
+          '<?xml version="1.0"?><document><p>(((user.name)))</p><p>(((user.email)))</p></document>'
+        )
       );
 
       const templatePath = path.join(__dirname, '../fixtures/workflow-test.docx');
@@ -301,7 +297,7 @@ describe('fetchData Integration Tests', () => {
       // Step 2: Fetch data for placeholders
       const fetchResult = await templater.fetchData(
         `${serverUrl}/api/data`,
-        parseResult.placeholders.unique,
+        parseResult.placeholders.unique
       );
       expect(fetchResult.success).toBe(true);
 
@@ -327,7 +323,7 @@ describe('fetchData Integration Tests', () => {
   describe('Performance and Reliability', () => {
     test('should handle concurrent requests', async () => {
       const requests = Array.from({ length: 5 }, (_, i) =>
-        templater.fetchData(`${serverUrl}/api/data`, [`test.${i}`]),
+        templater.fetchData(`${serverUrl}/api/data`, [`test.${i}`])
       );
 
       const results = await Promise.all(requests);

@@ -170,7 +170,11 @@ describe('Template Caching Integration', () => {
       const cachedParseResult = cache.getTemplate(templateKey);
       // Re-parse if cache doesn't have valid structure
       let validParseResult = cachedParseResult;
-      if (!cachedParseResult || !cachedParseResult.fileMap || !(cachedParseResult.fileMap instanceof Map)) {
+      if (
+        !cachedParseResult ||
+        !cachedParseResult.fileMap ||
+        !(cachedParseResult.fileMap instanceof Map)
+      ) {
         validParseResult = parser.parseDocument({}, complexXmlFiles);
       }
       const substitutionResult2 = substitution.substituteDocument(
@@ -183,7 +187,9 @@ describe('Template Caching Integration', () => {
       // Cache should provide performance benefit (or at least not be significantly slower)
       expect(time2).toBeLessThanOrEqual(time1 + 100); // Allow some variance
       expect(validParseResult).toBeDefined();
-      expect(validParseResult.summary.totalPlaceholders).toBe(parseResult.summary.totalPlaceholders);
+      expect(validParseResult.summary.totalPlaceholders).toBe(
+        parseResult.summary.totalPlaceholders
+      );
       expect(substitutionResult2.stats.successfulSubstitutions).toBe(100);
     });
 
@@ -369,7 +375,7 @@ describe('Template Caching Integration', () => {
       });
 
       // Verify cached results match original results
-      cachedResults.forEach((cachedResult, index) => {
+      cachedResults.forEach((cachedResult, _index) => {
         expect(cachedResult).toBeDefined();
         expect(cachedResult.result).toBeDefined();
       });

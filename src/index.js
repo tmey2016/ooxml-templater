@@ -22,7 +22,12 @@ if (isNode) {
 const PlaceholderParser = require('./core/placeholder-parser');
 const PlaceholderSubstitution = require('./core/placeholder-substitution');
 const xmlParser = require('./utils/xml-parser');
-const { fetchTemplate, detectMimeType, detectDocumentType, extractFilename } = require('./utils/fetch-handler');
+const {
+  fetchTemplate,
+  detectMimeType,
+  detectDocumentType,
+  extractFilename,
+} = require('./utils/fetch-handler');
 // const TemplateProcessor = require('./core/template-processor');
 // const DocumentGenerator = require('./core/document-generator');
 
@@ -48,7 +53,7 @@ class OOXMLTemplater {
    * @param {object} options - Parse options
    * @returns {Promise<object>} Parse result with placeholders and metadata
    */
-  async parseTemplate(templateUrl, options = {}) {
+  async parseTemplate(templateUrl, _options = {}) {
     try {
       // Fetch the template
       const templateBuffer = await fetchTemplate(templateUrl);
@@ -138,7 +143,7 @@ class OOXMLTemplater {
           try {
             const nodeFetch = require('node-fetch');
             response = await nodeFetch(apiUrl, requestOptions);
-          } catch (err) {
+          } catch {
             throw new Error('fetch is not available. Please use Node.js 18+ or install node-fetch');
           }
         } else {
@@ -355,7 +360,7 @@ class OOXMLTemplater {
    * @param {object} options - Save options
    * @returns {Promise<object>} Save result
    */
-  async saveDocument(documentBuffer, outputPath, options = {}) {
+  async saveDocument(documentBuffer, outputPath, _options = {}) {
     if (!isNode) {
       return {
         success: false,
@@ -445,7 +450,11 @@ class OOXMLTemplater {
       }
 
       // Step 3: Substitute placeholders
-      const substituteResult = await this.substituteTemplate(templateUrl, data, options.substitutionOptions || {});
+      const substituteResult = await this.substituteTemplate(
+        templateUrl,
+        data,
+        options.substitutionOptions || {}
+      );
       if (!substituteResult.success) {
         throw new Error(`Substitution failed: ${substituteResult.error.message}`);
       }

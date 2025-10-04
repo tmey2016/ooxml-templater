@@ -18,7 +18,7 @@ describe('Browser Environment Tests', () => {
     global.window = {
       URL: {
         createObjectURL: jest.fn(() => 'blob:mock-url'),
-        revokeObjectURL: jest.fn()
+        revokeObjectURL: jest.fn(),
       },
       Blob: class MockBlob {
         constructor(content, options) {
@@ -26,7 +26,7 @@ describe('Browser Environment Tests', () => {
           this.type = options?.type || '';
           this.size = content[0]?.length || 0;
         }
-      }
+      },
     };
 
     global.document = {
@@ -36,14 +36,14 @@ describe('Browser Environment Tests', () => {
           href: '',
           download: '',
           click: jest.fn(),
-          remove: jest.fn()
+          remove: jest.fn(),
         };
         return element;
       }),
       body: {
         appendChild: jest.fn(),
-        removeChild: jest.fn()
-      }
+        removeChild: jest.fn(),
+      },
     };
 
     global.Blob = global.window.Blob;
@@ -76,7 +76,7 @@ describe('Browser Environment Tests', () => {
       const testBuffer = Buffer.from('test document content');
       const options = {
         filename: 'test.docx',
-        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       };
 
       const result = templater.downloadDocument(testBuffer, options);
@@ -118,7 +118,7 @@ describe('Browser Environment Tests', () => {
 
       global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ data: 'test' })
+        json: async () => ({ data: 'test' }),
       });
 
       delete require.cache[require.resolve('../../src/index.js')];
@@ -128,7 +128,7 @@ describe('Browser Environment Tests', () => {
       try {
         await templater.fetchData('http://api.test.com/data', ['placeholder']);
         expect(global.fetch).toHaveBeenCalled();
-      } catch (error) {
+      } catch {
         // Expected to fail due to incomplete mock
       }
 
@@ -145,7 +145,7 @@ describe('Browser Environment Tests', () => {
       global.window.OOXMLTemplater = undefined;
 
       // Clear all module caches for clean reload
-      Object.keys(require.cache).forEach(key => {
+      Object.keys(require.cache).forEach((key) => {
         if (key.includes('ooxml-templater')) {
           delete require.cache[key];
         }

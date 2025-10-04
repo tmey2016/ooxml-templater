@@ -95,7 +95,8 @@ describe('DeleteIfEmpty Integration Tests', () => {
       const xmlFiles = [
         {
           path: 'ppt/slides/slide1.xml',
-          content: '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=slide1)))</a:t></a:r></a:p></p:txBody></p:sld>',
+          content:
+            '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=slide1)))</a:t></a:r></a:p></p:txBody></p:sld>',
           type: 'powerpoint',
           category: 'content',
         },
@@ -112,13 +113,15 @@ describe('DeleteIfEmpty Integration Tests', () => {
       const xmlFiles = [
         {
           path: 'ppt/slides/slide1.xml',
-          content: '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=emptySlide)))</a:t></a:r></a:p></p:txBody></p:sld>',
+          content:
+            '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=emptySlide)))</a:t></a:r></a:p></p:txBody></p:sld>',
           type: 'powerpoint',
           category: 'content',
         },
         {
           path: 'ppt/slides/slide2.xml',
-          content: '<p:sld><p:txBody><a:p><a:r><a:t>Keep this slide</a:t></a:r></a:p></p:txBody></p:sld>',
+          content:
+            '<p:sld><p:txBody><a:p><a:r><a:t>Keep this slide</a:t></a:r></a:p></p:txBody></p:sld>',
           type: 'powerpoint',
           category: 'content',
         },
@@ -151,7 +154,8 @@ describe('DeleteIfEmpty Integration Tests', () => {
       const xmlFiles = [
         {
           path: 'ppt/slides/slide1.xml',
-          content: '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=slideContent)))</a:t></a:r></a:p></p:txBody></p:sld>',
+          content:
+            '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=slideContent)))</a:t></a:r></a:p></p:txBody></p:sld>',
           type: 'powerpoint',
           category: 'content',
         },
@@ -215,7 +219,8 @@ describe('DeleteIfEmpty Integration Tests', () => {
         },
         {
           path: 'ppt/slides/slide1.xml',
-          content: '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=pptSection)))</a:t></a:r></a:p></p:txBody></p:sld>',
+          content:
+            '<p:sld><p:txBody><a:p><a:r><a:t>(((DeleteSlideIfEmpty=pptSection)))</a:t></a:r></a:p></p:txBody></p:sld>',
           type: 'powerpoint',
           category: 'content',
         },

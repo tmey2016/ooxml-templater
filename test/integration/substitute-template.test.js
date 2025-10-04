@@ -9,7 +9,7 @@ const AdmZip = require('adm-zip');
 
 describe('substituteTemplate Integration Tests', () => {
   let templater;
-  const fixturesDir = path.join(__dirname, '../fixtures');
+  // const fixturesDir = path.join(__dirname, '../fixtures');
   const testTemplatesDir = path.join(__dirname, '../fixtures/substitution-templates');
 
   beforeAll(async () => {
@@ -27,7 +27,7 @@ describe('substituteTemplate Integration Tests', () => {
         await fs.unlink(path.join(testTemplatesDir, file));
       }
       await fs.rmdir(testTemplatesDir);
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -40,7 +40,9 @@ describe('substituteTemplate Integration Tests', () => {
 
       zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0"?><Types></Types>`));
 
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>Invoice for (((customer.name)))</w:t></w:r></w:p>
@@ -48,7 +50,8 @@ describe('substituteTemplate Integration Tests', () => {
     <w:p><w:r><w:t>Total: $(((order.total)))</w:t></w:r></w:p>
     <w:p><w:r><w:t>Email: (((customer.email)))</w:t></w:r></w:p>
   </w:body>
-</w:document>`));
+</w:document>`)
+      );
 
       docxTemplatePath = path.join(testTemplatesDir, 'invoice.docx');
       await fs.writeFile(docxTemplatePath, zip.toBuffer());
@@ -111,8 +114,8 @@ describe('substituteTemplate Integration Tests', () => {
       const outputZip = new AdmZip(result.document);
       const entries = outputZip.getEntries();
 
-      expect(entries.find(e => e.entryName === '[Content_Types].xml')).toBeDefined();
-      expect(entries.find(e => e.entryName === 'word/document.xml')).toBeDefined();
+      expect(entries.find((e) => e.entryName === '[Content_Types].xml')).toBeDefined();
+      expect(entries.find((e) => e.entryName === 'word/document.xml')).toBeDefined();
     });
   });
 
@@ -124,7 +127,9 @@ describe('substituteTemplate Integration Tests', () => {
 
       zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0"?><Types></Types>`));
 
-      zip.addFile('ppt/slides/slide1.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'ppt/slides/slide1.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
   <p:cSld>
     <p:spTree>
@@ -137,9 +142,12 @@ describe('substituteTemplate Integration Tests', () => {
       </p:sp>
     </p:spTree>
   </p:cSld>
-</p:sld>`));
+</p:sld>`)
+      );
 
-      zip.addFile('ppt/charts/chart1.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'ppt/charts/chart1.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart">
   <c:chart>
     <c:plotArea>
@@ -159,7 +167,8 @@ describe('substituteTemplate Integration Tests', () => {
       </c:barChart>
     </c:plotArea>
   </c:chart>
-</c:chartSpace>`));
+</c:chartSpace>`)
+      );
 
       pptxTemplatePath = path.join(testTemplatesDir, 'quarterly-report.pptx');
       await fs.writeFile(pptxTemplatePath, zip.toBuffer());
@@ -227,7 +236,9 @@ describe('substituteTemplate Integration Tests', () => {
 
       zip.addFile('[Content_Types].xml', Buffer.from(`<?xml version="1.0"?><Types></Types>`));
 
-      zip.addFile('xl/worksheets/sheet1.xml', Buffer.from(`<?xml version="1.0"?>
+      zip.addFile(
+        'xl/worksheets/sheet1.xml',
+        Buffer.from(`<?xml version="1.0"?>
 <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
   <sheetData>
     <row r="1">
@@ -243,7 +254,8 @@ describe('substituteTemplate Integration Tests', () => {
       <c r="B3" t="inlineStr"><is><t>(((product.stock)))</t></is></c>
     </row>
   </sheetData>
-</worksheet>`));
+</worksheet>`)
+      );
 
       xlsxTemplatePath = path.join(testTemplatesDir, 'inventory.xlsx');
       await fs.writeFile(xlsxTemplatePath, zip.toBuffer());
@@ -299,8 +311,11 @@ describe('substituteTemplate Integration Tests', () => {
     test('should handle missing data in non-strict mode', async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Hello (((user.name))), email: (((user.email)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Hello (((user.name))), email: (((user.email)))</p></document>`)
+      );
 
       const tempPath = path.join(testTemplatesDir, 'partial-data-test.docx');
       await fs.writeFile(tempPath, zip.toBuffer());
@@ -328,8 +343,11 @@ describe('substituteTemplate Integration Tests', () => {
     beforeAll(async () => {
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Name: (((user.name))), Age: (((user.age))), City: (((user.city)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Name: (((user.name))), Age: (((user.age))), City: (((user.city)))</p></document>`)
+      );
 
       optionsTemplatePath = path.join(testTemplatesDir, 'options-test.docx');
       await fs.writeFile(optionsTemplatePath, zip.toBuffer());
@@ -389,8 +407,11 @@ describe('substituteTemplate Integration Tests', () => {
       // Create template
       const zip = new AdmZip();
       zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types></Types>'));
-      zip.addFile('word/document.xml', Buffer.from(`<?xml version="1.0"?>
-<document><p>Report by (((author))), Date: (((date)))</p></document>`));
+      zip.addFile(
+        'word/document.xml',
+        Buffer.from(`<?xml version="1.0"?>
+<document><p>Report by (((author))), Date: (((date)))</p></document>`)
+      );
 
       const templatePath = path.join(testTemplatesDir, 'e2e-test.docx');
       await fs.writeFile(templatePath, zip.toBuffer());
