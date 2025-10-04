@@ -404,7 +404,11 @@ describe('PlaceholderSubstitution', () => {
       const fileMap = new Map();
       fileMap.set('missing.xml', [{ cleanName: 'test', rawMatch: '(((test)))' }]);
 
-      const parseResult = { fileMap, placeholders: { all: [], unique: [] } };
+      const parseResult = {
+        fileMap,
+        placeholders: { all: [], unique: [] },
+        deleteDirectives: [] // Add this field
+      };
       const data = { test: 'value' };
       const xmlFiles = []; // No matching files
 
@@ -416,10 +420,14 @@ describe('PlaceholderSubstitution', () => {
 
     test('should handle empty data object', () => {
       const content = 'Text with (((placeholder)))';
-      const placeholder = { cleanName: 'placeholder', rawMatch: '(((placeholder)))' };
+      const placeholder = {
+        cleanName: 'placeholder',
+        rawMatch: '(((placeholder)))',
+        position: { index: 10, length: 19 }
+      };
       const data = {}; // Empty data
 
-      const result = substitution.substitutePlaceholder(content, placeholder, data);
+      const result = substitution.substitutePlaceholder(placeholder, data, content);
 
       expect(result.content).toContain('(((placeholder)))'); // Should preserve placeholder
     });
@@ -427,30 +435,21 @@ describe('PlaceholderSubstitution', () => {
     test('should handle exceptions in substitutePlaceholder without strict mode', () => {
       const substitutionNoStrict = new PlaceholderSubstitution({ strictMode: false });
 
-      // Mock replaceInContent to throw an error
-      const originalReplace = substitutionNoStrict.replaceInContent;
-      substitutionNoStrict.replaceInContent = () => {
-        throw new Error('Simulated error');
-      };
-
+      // Create a malformed placeholder that will cause an error
       const placeholder = {
         cleanName: 'test',
         rawMatch: '(((test)))',
-        position: { index: 5, length: 11 },
+        position: null, // This will cause error accessing position.index
         type: 'string'
       };
       const content = 'Some (((test))) content';
       const data = { test: 'value' };
 
-      try {
-        const result = substitutionNoStrict.substitutePlaceholder(content, placeholder, data);
+      const result = substitutionNoStrict.substitutePlaceholder(placeholder, data, content);
 
-        expect(result.success).toBe(false);
-        expect(result.error).toBeDefined();
-        expect(result.content).toBe(content); // Original content preserved
-      } finally {
-        substitutionNoStrict.replaceInContent = originalReplace;
-      }
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.content).toBe(content); // Original content preserved
     });
   });
 });

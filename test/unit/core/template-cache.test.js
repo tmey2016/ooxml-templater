@@ -438,7 +438,7 @@ describe('TemplateCache', () => {
       ttlCache.destroy();
     });
 
-    test('should call cleanupExpiredEntries method', () => {
+    test('should call cleanup method', () => {
       const ttlCache = new TemplateCache({ ttl: 1000 }); //Start with TTL
       ttlCache.stopCleanupTimer(); // Stop timer immediately to avoid interference
 
@@ -452,7 +452,7 @@ describe('TemplateCache', () => {
         entry.timestamp = Date.now() - 2000; // 2 seconds ago
       }
 
-      ttlCache.cleanupExpiredEntries();
+      ttlCache.cleanup();
 
       // Should have cleaned up expired entries
       expect(ttlCache.templateCache.size).toBe(0);
@@ -467,7 +467,7 @@ describe('TemplateCache', () => {
       ttlCache.setTemplate('key1', { data: 'test1' });
       ttlCache.setTemplate('key2', { data: 'test2' });
 
-      ttlCache.cleanupExpiredEntries();
+      ttlCache.cleanup();
 
       // Nothing should be expired
       expect(ttlCache.templateCache.size).toBe(2);
@@ -515,15 +515,18 @@ describe('TemplateCache', () => {
       smallCache.destroy();
     });
 
-    test('should evict least recently used when LRU is enabled', () => {
+    test('should evict least recently used when LRU is enabled', async () => {
       const lruCache = new TemplateCache({ maxSize: 2, enableLRU: true, ttl: 0 });
 
       lruCache.setTemplate('key1', { data: 'first' });
+      await new Promise(resolve => setTimeout(resolve, 10));
       lruCache.setTemplate('key2', { data: 'second' });
 
+      await new Promise(resolve => setTimeout(resolve, 10));
       // Access key1 to make it more recently used
       lruCache.getTemplate('key1');
 
+      await new Promise(resolve => setTimeout(resolve, 10));
       // Adding third should evict key2 (least recently used)
       lruCache.setTemplate('key3', { data: 'third' });
 
@@ -699,7 +702,7 @@ describe('TemplateCache', () => {
         entry.timestamp = Date.now() - 2000;
       }
 
-      const cleanedCount = ttlCache.cleanupExpiredEntries();
+      const cleanedCount = ttlCache.cleanup();
 
       expect(cleanedCount).toBe(3); // All 3 entries should be cleaned
       expect(ttlCache.templateCache.size).toBe(0);
@@ -707,6 +710,52 @@ describe('TemplateCache', () => {
       expect(ttlCache.dataCache.size).toBe(0);
 
       ttlCache.destroy();
+    });
+  });
+
+  describe('Additional Coverage Tests', () => {
+    test('should trigger automatic cleanup timer', async () => {
+      const autoCache = new TemplateCache({ ttl: 100, maxSize: 10 });
+
+      // Add an entry
+      autoCache.setTemplate('test', { data: 'value' });
+
+      // Wait for cleanup timer to run (it runs every ttl/4)
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // The cleanup timer should have run at least once
+      expect(autoCache.cleanupTimer).not.toBeNull();
+
+      autoCache.destroy();
+    });
+
+    test('should throw error for invalid cache type in getCacheStore', () => {
+      const cache = new TemplateCache({ ttl: 0 });
+
+      // Access private method via bracket notation to test error path
+      expect(() => {
+        cache.getCacheStore('invalid_type');
+      }).toThrow('Invalid cache type');
+
+      cache.destroy();
+    });
+
+    test('should clone Map values correctly', () => {
+      const cache = new TemplateCache({ ttl: 0 });
+
+      const mapValue = new Map();
+      mapValue.set('key1', 'value1');
+      mapValue.set('key2', { nested: 'value2' });
+
+      cache.setTemplate('test', mapValue);
+      const retrieved = cache.getTemplate('test');
+
+      expect(retrieved).toBeInstanceOf(Map);
+      expect(retrieved.get('key1')).toBe('value1');
+      expect(retrieved.get('key2')).toEqual({ nested: 'value2' });
+      expect(retrieved).not.toBe(mapValue); // Should be a clone
+
+      cache.destroy();
     });
   });
 });

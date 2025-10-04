@@ -236,7 +236,7 @@ class TemplateCache {
       return;
     }
 
-    let oldestTime = Date.now();
+    let oldestTime = Infinity;
     let oldestKey = null;
     let oldestCacheKey = null;
 

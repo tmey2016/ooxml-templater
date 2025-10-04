@@ -219,4 +219,32 @@ describe('NodeZipHandler', () => {
       }
     });
   });
+
+  describe('Remote ZIP fetching with HTTP errors', () => {
+    const nock = require('nock');
+
+    afterEach(() => {
+      nock.cleanAll();
+    });
+
+    test('should handle HTTP 404 when fetching remote ZIP', async () => {
+      nock('http://remote.example.com')
+        .get('/template.zip')
+        .reply(404, 'Not Found');
+
+      await expect(
+        NodeZipHandler.extract('http://remote.example.com/template.zip')
+      ).rejects.toThrow('Failed to fetch ZIP file');
+    });
+
+    test('should handle HTTP 500 server error when fetching ZIP', async () => {
+      nock('http://remote.example.com')
+        .get('/template.zip')
+        .reply(500, 'Server Error');
+
+      await expect(
+        NodeZipHandler.extract('http://remote.example.com/template.zip')
+      ).rejects.toThrow('Failed to fetch ZIP file');
+    });
+  });
 });

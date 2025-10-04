@@ -227,4 +227,42 @@ describe('FetchHandler', () => {
       }
     });
   });
+
+  describe('HTTP Error Handling with nock', () => {
+    const nock = require('nock');
+
+    afterEach(() => {
+      nock.cleanAll();
+    });
+
+    it('should handle HTTP 404 error', async () => {
+      nock('http://test.example.com')
+        .get('/missing.docx')
+        .reply(404, 'Not Found');
+
+      await expect(
+        fetchTemplate('http://test.example.com/missing.docx')
+      ).rejects.toThrow('404');
+    });
+
+    it('should handle HTTP 500 error', async () => {
+      nock('http://test.example.com')
+        .get('/error.docx')
+        .reply(500, 'Internal Server Error');
+
+      await expect(
+        fetchTemplate('http://test.example.com/error.docx')
+      ).rejects.toThrow('500');
+    });
+
+    it('should handle HTTP 403 Forbidden', async () => {
+      nock('http://test.example.com')
+        .get('/forbidden.docx')
+        .reply(403, 'Forbidden');
+
+      await expect(
+        fetchTemplate('http://test.example.com/forbidden.docx')
+      ).rejects.toThrow('403');
+    });
+  });
 });
