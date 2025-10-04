@@ -1,0 +1,16 @@
+# Build output
+dist/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.js
+
+# Test fixtures (may have specific formatting)
+test/fixtures/**/*.xml
+test/fixtures/**/*.json
+
+# Documentation that should preserve formatting
+*.md
