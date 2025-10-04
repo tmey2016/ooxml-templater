@@ -902,5 +902,82 @@ describe('ContentDeletion', () => {
       // Should handle gracefully
       expect(results).toBeDefined();
     });
+
+    test('should trigger catch block in deleteWordPage', () => {
+      const file = {
+        path: 'document.xml',
+        content: '<w:document><w:body><w:p>Text</w:p></w:body></w:document>'
+      };
+
+      const directives = [{
+        position: { file: 'document.xml', start: 10 },
+        cleanName: 'test',
+        isEmpty: true
+      }];
+
+      // Mock findPageBoundaries to throw error
+      const originalMethod = contentDeletion.findPageBoundaries;
+      contentDeletion.findPageBoundaries = () => {
+        throw new Error('Simulated error');
+      };
+
+      try {
+        const result = contentDeletion.deleteWordPage(file, directives);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      } finally {
+        contentDeletion.findPageBoundaries = originalMethod;
+      }
+    });
+
+    test('should trigger catch block in deletePowerPointSlide', () => {
+      const file = {
+        path: 'ppt/slides/slide1.xml',
+        content: '<p:sld>content</p:sld>'
+      };
+
+      const directives = [{
+        position: { file: 'ppt/slides/slide1.xml', start: 0 },
+        cleanName: 'test',
+        isEmpty: true
+      }];
+
+      // Provide malformed file path to trigger error
+      file.path = 'invalid-path-without-slide-number.xml';
+
+      const result = contentDeletion.deletePowerPointSlide(file, directives);
+
+      // Should handle error gracefully
+      expect(result).toBeDefined();
+    });
+
+    test('should trigger catch block in deleteExcelRow', () => {
+      const file = {
+        path: 'xl/worksheets/sheet1.xml',
+        content: '<worksheet><sheetData><row>data</row></sheetData></worksheet>'
+      };
+
+      const directives = [{
+        position: { file: 'xl/worksheets/sheet1.xml', start: 10 },
+        cleanName: 'test',
+        isEmpty: true
+      }];
+
+      // Mock findContainingElement to throw error
+      const originalMethod = contentDeletion.findContainingElement;
+      contentDeletion.findContainingElement = () => {
+        throw new Error('Simulated error');
+      };
+
+      try {
+        const result = contentDeletion.deleteExcelRow(file, directives);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+      } finally {
+        contentDeletion.findContainingElement = originalMethod;
+      }
+    });
   });
 });

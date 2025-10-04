@@ -715,15 +715,22 @@ describe('TemplateCache', () => {
 
   describe('Additional Coverage Tests', () => {
     test('should trigger automatic cleanup timer', async () => {
-      const autoCache = new TemplateCache({ ttl: 100, maxSize: 10 });
+      const autoCache = new TemplateCache({ ttl: 50, maxSize: 10 });
 
-      // Add an entry
+      // Add an entry that will expire
       autoCache.setTemplate('test', { data: 'value' });
 
-      // Wait for cleanup timer to run (it runs every ttl/4)
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Manually set timestamp to make it expired
+      for (const [, entry] of autoCache.templateCache) {
+        entry.timestamp = Date.now() - 100; // Make it expired
+      }
 
-      // The cleanup timer should have run at least once
+      // Wait for cleanup timer to run (it runs every ttl/4, so every 12.5ms)
+      // Wait 50ms to ensure it runs at least once
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // After cleanup runs, the expired entry should be removed
+      expect(autoCache.getTemplate('test')).toBeNull();
       expect(autoCache.cleanupTimer).not.toBeNull();
 
       autoCache.destroy();
