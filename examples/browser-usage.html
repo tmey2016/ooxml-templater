@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOXML Templater - Browser Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #444;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        input[type="text"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .output pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6c757d;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-input-label:hover {
+            background: #5a6268;
+        }
+        .file-name {
+            margin-left: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OOXML Templater Browser Demo</h1>
+        <p class="subtitle">Generate Office documents directly in your browser</p>
+
+        <!-- Example 1: Simple Document Generation -->
+        <div class="section">
+            <h2>1. Simple Document Generation</h2>
+            <div class="form-group">
+                <div class="file-input-wrapper">
+                    <label class="file-input-label">
+                        Choose Template File
+                        <input type="file" id="templateFile" accept=".docx,.pptx,.xlsx">
+                    </label>
+                    <span class="file-name" id="fileName">No file chosen</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="dataJson">Data (JSON format):</label>
+                <textarea id="dataJson" placeholder='{"name": "John Doe", "email": "john@example.com"}'>{
+  "name": "John Doe",
+  "company": "Acme Corporation",
+  "date": "2024-12-15",
+  "subject": "Project Proposal"
+}</textarea>
+            </div>
+            <button onclick="generateSimpleDocument()">Generate Document</button>
+            <div class="output" id="simpleOutput"></div>
+        </div>
+
+        <!-- Example 2: Template from URL -->
+        <div class="section">
+            <h2>2. Template from URL</h2>
+            <div class="form-group">
+                <label for="templateUrl">Template URL:</label>
+                <input type="url" id="templateUrl" placeholder="https://example.com/template.docx"
+                       value="https://example.com/templates/invoice.docx">
+            </div>
+            <div class="form-group">
+                <label for="apiUrl">API URL (for data):</label>
+                <input type="url" id="apiUrl" placeholder="https://api.example.com/invoice/123/data"
+                       value="https://api.example.com/data">
+            </div>
+            <button onclick="generateFromUrl()">Fetch & Generate</button>
+            <div class="output" id="urlOutput"></div>
+        </div>
+
+        <!-- Example 3: Batch Processing -->
+        <div class="section">
+            <h2>3. Batch Processing</h2>
+            <div class="form-group">
+                <div class="file-input-wrapper">
+                    <label class="file-input-label">
+                        Choose Template
+                        <input type="file" id="batchTemplate" accept=".docx,.pptx,.xlsx">
+                    </label>
+                    <span class="file-name" id="batchFileName">No file chosen</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="batchData">Batch Data (JSON Array):</label>
+                <textarea id="batchData" placeholder='[{"name": "Person 1"}, {"name": "Person 2"}]'>[
+  {"name": "Alice Johnson", "score": 95},
+  {"name": "Bob Smith", "score": 88},
+  {"name": "Carol White", "score": 92}
+]</textarea>
+            </div>
+            <button onclick="processBatch()">Process Batch</button>
+            <div class="output" id="batchOutput"></div>
+        </div>
+    </div>
+
+    <!-- Include required libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/zip.js/2.7.29/zip.min.js"></script>
+    <script src="../dist/ooxml-templater.js"></script>
+
+    <script>
+        // Initialize templater
+        const templater = new OOXMLTemplater();
+
+        // File input handlers
+        document.getElementById('templateFile').addEventListener('change', function(e) {
+            document.getElementById('fileName').textContent = e.target.files[0]?.name || 'No file chosen';
+        });
+
+        document.getElementById('batchTemplate').addEventListener('change', function(e) {
+            document.getElementById('batchFileName').textContent = e.target.files[0]?.name || 'No file chosen';
+        });
+
+        /**
+         * Example 1: Simple document generation from local file
+         */
+        async function generateSimpleDocument() {
+            const output = document.getElementById('simpleOutput');
+            output.innerHTML = '<p class="info">Processing...</p>';
+
+            try {
+                const fileInput = document.getElementById('templateFile');
+                const dataInput = document.getElementById('dataJson');
+
+                if (!fileInput.files[0]) {
+                    throw new Error('Please select a template file');
+                }
+
+                // Read file as ArrayBuffer
+                const file = fileInput.files[0];
+                const buffer = await file.arrayBuffer();
+
+                // Parse JSON data
+                const data = JSON.parse(dataInput.value);
+
+                // Parse template first
+                const parseResult = await templater.parseTemplate(buffer);
+                output.innerHTML += `<p class="info">Found ${parseResult.placeholders.count} placeholders</p>`;
+
+                // Substitute data
+                const substResult = await templater.substituteTemplate(buffer, data);
+
+                if (substResult.success) {
+                    // Download the generated document
+                    const filename = file.name.replace(/\\.[^.]+$/, '-generated$&');
+                    templater.downloadDocument(substResult.document, { filename });
+
+                    output.innerHTML += `<p class="success">✓ Document generated successfully!</p>`;
+                    output.innerHTML += `<pre>Substitutions: ${substResult.stats.successfulSubstitutions}\\nDownloaded as: ${filename}</pre>`;
+                } else {
+                    output.innerHTML += `<p class="error">✗ Error: ${substResult.error.message}</p>`;
+                }
+
+            } catch (error) {
+                output.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        /**
+         * Example 2: Generate from URL with API data
+         */
+        async function generateFromUrl() {
+            const output = document.getElementById('urlOutput');
+            output.innerHTML = '<p class="info">Processing...</p>';
+
+            try {
+                const templateUrl = document.getElementById('templateUrl').value;
+                const apiUrl = document.getElementById('apiUrl').value;
+
+                // Parse template from URL
+                const parseResult = await templater.parseTemplate(templateUrl);
+                output.innerHTML += `<p class="info">Template parsed: ${parseResult.placeholders.count} placeholders</p>`;
+
+                // Fetch data from API
+                output.innerHTML += `<p class="info">Fetching data from API...</p>`;
+                const data = await templater.fetchData(apiUrl, parseResult.placeholders.unique);
+
+                // Generate document
+                const substResult = await templater.substituteTemplate(templateUrl, data);
+
+                if (substResult.success) {
+                    templater.downloadDocument(substResult.document, {
+                        filename: 'generated-document.docx'
+                    });
+
+                    output.innerHTML += `<p class="success">✓ Document downloaded!</p>`;
+                    output.innerHTML += `<pre>${JSON.stringify({
+                        placeholders: parseResult.placeholders.count,
+                        substitutions: substResult.stats.successfulSubstitutions,
+                        deletions: substResult.deletionResults
+                    }, null, 2)}</pre>`;
+                }
+
+            } catch (error) {
+                output.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+                console.error(error);
+            }
+        }
+
+        /**
+         * Example 3: Batch processing
+         */
+        async function processBatch() {
+            const output = document.getElementById('batchOutput');
+            output.innerHTML = '<p class="info">Processing batch...</p>';
+
+            try {
+                const fileInput = document.getElementById('batchTemplate');
+                const batchDataInput = document.getElementById('batchData');
+
+                if (!fileInput.files[0]) {
+                    throw new Error('Please select a template file');
+                }
+
+                const file = fileInput.files[0];
+                const buffer = await file.arrayBuffer();
+                const batchData = JSON.parse(batchDataInput.value);
+
+                output.innerHTML += `<p class="info">Processing ${batchData.length} documents...</p>`;
+
+                let successCount = 0;
+                const startTime = Date.now();
+
+                for (let i = 0; i < batchData.length; i++) {
+                    const data = batchData[i];
+
+                    const result = await templater.substituteTemplate(buffer, data);
+
+                    if (result.success) {
+                        const filename = `document-${i + 1}-${data.name?.replace(/\\s+/g, '-') || 'output'}.${file.name.split('.').pop()}`;
+                        templater.downloadDocument(result.document, { filename });
+                        successCount++;
+
+                        output.innerHTML += `<p class="success">✓ Document ${i + 1}: ${filename}</p>`;
+                    } else {
+                        output.innerHTML += `<p class="error">✗ Document ${i + 1}: ${result.error.message}</p>`;
+                    }
+                }
+
+                const duration = Date.now() - startTime;
+                output.innerHTML += `<p class="info">Completed: ${successCount}/${batchData.length} successful (${duration}ms)</p>`;
+
+            } catch (error) {
+                output.innerHTML += `<p class="error">✗ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Cache statistics display (optional)
+        setInterval(() => {
+            const stats = templater.cache.getStats();
+            console.log('Cache stats:', stats);
+        }, 5000);
+    </script>
+</body>
+</html>

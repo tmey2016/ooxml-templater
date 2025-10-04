@@ -29,14 +29,14 @@
     "xml",
     "javascript"
   ],
-  "author": "",
+  "author": "Milan G. <realmilangeorgijevic@gmail.com>",
   "license": "MIT",
   "engines": {
     "node": ">=14.0.0"
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/tmey2016/ooxml-templater.git"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
