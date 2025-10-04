@@ -1220,8 +1220,16 @@ describe('OOXMLTemplater', () => {
   describe('processTemplate with URL dataSource', () => {
     const nock = require('nock');
 
+    beforeEach(() => {
+      // Ensure nock is active
+      if (!nock.isActive()) {
+        nock.activate();
+      }
+    });
+
     afterEach(() => {
       nock.cleanAll();
+      nock.restore();
     });
 
     test('should handle processTemplate with dataSource as URL', async () => {
@@ -1381,6 +1389,59 @@ describe('OOXMLTemplater', () => {
 
       try {
         const data = { test: 'Value' };
+        const result = await templater.processTemplate(testTemplatePath, data);
+
+        expect(result.success).toBe(true);
+        expect(result.document).toBeDefined();
+      } finally {
+        await fs.unlink(testTemplatePath).catch(() => {});
+      }
+    });
+
+    test('should handle processTemplate with strictMode causing substitution to fail', async () => {
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
+      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((missingPlaceholder)))</w:t></w:p></w:body></w:document>'));
+
+      const testTemplatePath = path.join(__dirname, 'strict-fail-test.docx');
+      await fs.writeFile(testTemplatePath, zip.toBuffer());
+
+      try {
+        const data = { differentKey: 'value' }; // Missing 'missingPlaceholder'
+
+        const result = await templater.processTemplate(testTemplatePath, data, {
+          substitutionOptions: { strictMode: true }
+        });
+
+        // In strictMode, missing placeholders cause failure (line 450)
+        expect(result.success).toBe(false);
+        expect(result.error).toBeDefined();
+        expect(result.error.message).toContain('Substitution failed');
+      } finally {
+        await fs.unlink(testTemplatePath).catch(() => {});
+      }
+    });
+
+    test('should handle complex template with multiple file types', async () => {
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+
+      // Create a more complex structure with different file types
+      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
+      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((title)))</w:t></w:p><w:p><w:t>(((content)))</w:t></w:p></w:body></w:document>'));
+      zip.addFile('word/header.xml', Buffer.from('<w:hdr><w:p><w:t>Header</w:t></w:p></w:hdr>'));
+      zip.addFile('word/footer.xml', Buffer.from('<w:ftr><w:p><w:t>Footer</w:t></w:p></w:ftr>'));
+
+      const testTemplatePath = path.join(__dirname, 'complex-structure-test.docx');
+      await fs.writeFile(testTemplatePath, zip.toBuffer());
+
+      try {
+        const data = {
+          title: 'Test Document',
+          content: 'This is test content'
+        };
+
         const result = await templater.processTemplate(testTemplatePath, data);
 
         expect(result.success).toBe(true);
