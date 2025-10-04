@@ -2,8 +2,8 @@
 
 A powerful JavaScript library for dynamic placeholder substitution in Office Open XML documents (.docx, .pptx, .xlsx) through direct XML content manipulation, supporting both Node.js and browser environments.
 
-[![Coverage: 91.89%](https://img.shields.io/badge/coverage-91.89%25-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
-[![Tests: 445/445](https://img.shields.io/badge/tests-445%2F445%20passing-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
+[![Coverage: 94.78%](https://img.shields.io/badge/coverage-94.78%25-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
+[![Tests: 462/462](https://img.shields.io/badge/tests-462%2F462%20passing-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
 [![Node.js >= 14](https://img.shields.io/badge/node-%3E%3D14-brightgreen.svg)](https://nodejs.org)
 
 ## Features
@@ -348,7 +348,7 @@ const result = await templater.substituteTemplate('./template.docx', data, {
 
 ## Testing
 
-The library has **91.89% code coverage** with **445 passing tests**:
+The library has **94.78% code coverage** with **462 passing tests**:
 
 ```bash
 # Run all tests
