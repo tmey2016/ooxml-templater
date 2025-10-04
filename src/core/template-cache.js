@@ -10,7 +10,7 @@ class TemplateCache {
   constructor(options = {}) {
     this.options = {
       maxSize: options.maxSize || 50, // Maximum cache entries
-      ttl: options.ttl || 30 * 60 * 1000, // Time to live in milliseconds (30 minutes)
+      ttl: options.ttl !== undefined ? options.ttl : 30 * 60 * 1000, // Time to live in milliseconds (30 minutes)
       enableLRU: options.enableLRU !== false, // Enable LRU eviction
       enableMetrics: options.enableMetrics !== false, // Enable cache metrics
     };

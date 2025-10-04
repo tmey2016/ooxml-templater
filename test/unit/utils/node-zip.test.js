@@ -191,4 +191,32 @@ describe('NodeZipHandler', () => {
       expect(entries.find(e => e.entryName === 'valid.xml')).toBeDefined();
     });
   });
+
+  describe('saveToFile method', () => {
+    const fs = require('fs').promises;
+    const path = require('path');
+
+    test('should save ZIP buffer to file', async () => {
+      const zip = new AdmZip();
+      zip.addFile('test.xml', Buffer.from('<xml>content</xml>', 'utf8'));
+      const zipBuffer = zip.toBuffer();
+
+      const outputPath = path.join(__dirname, '../../fixtures/test-output.zip');
+
+      try {
+        await NodeZipHandler.saveToFile(zipBuffer, outputPath);
+
+        // Verify file was created
+        const stats = await fs.stat(outputPath);
+        expect(stats.size).toBeGreaterThan(0);
+
+        // Verify content is correct
+        const savedBuffer = await fs.readFile(outputPath);
+        expect(savedBuffer.length).toBe(zipBuffer.length);
+      } finally {
+        // Cleanup
+        await fs.unlink(outputPath).catch(() => {});
+      }
+    });
+  });
 });

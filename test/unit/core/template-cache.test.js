@@ -36,7 +36,7 @@ describe('TemplateCache', () => {
 
     test('should create instance with custom options', () => {
       expect(cache.options.maxSize).toBe(5);
-      expect(cache.options.ttl).toBe(1000);
+      expect(cache.options.ttl).toBe(0); // Matches beforeEach initialization
       expect(cache.options.enableLRU).toBe(true);
       expect(cache.options.enableMetrics).toBe(true);
     });
@@ -439,8 +439,8 @@ describe('TemplateCache', () => {
     });
 
     test('should call cleanupExpiredEntries method', () => {
-      const ttlCache = new TemplateCache({ ttl: 0 }); // No timer
-      ttlCache.configure({ ttl: 1000 });
+      const ttlCache = new TemplateCache({ ttl: 1000 }); //Start with TTL
+      ttlCache.stopCleanupTimer(); // Stop timer immediately to avoid interference
 
       ttlCache.setTemplate('key1', { data: 'test1' });
       ttlCache.setTemplate('key2', { data: 'test2' });
@@ -461,8 +461,8 @@ describe('TemplateCache', () => {
     });
 
     test('should not remove entries that have not expired', () => {
-      const ttlCache = new TemplateCache({ ttl: 0 }); // No timer
-      ttlCache.configure({ ttl: 10000 }); // Long TTL
+      const ttlCache = new TemplateCache({ ttl: 10000 }); // Long TTL
+      ttlCache.stopCleanupTimer(); // Stop timer to avoid interference
 
       ttlCache.setTemplate('key1', { data: 'test1' });
       ttlCache.setTemplate('key2', { data: 'test2' });

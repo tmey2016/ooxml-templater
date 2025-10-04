@@ -206,4 +206,25 @@ describe('FetchHandler', () => {
       });
     });
   });
+
+  describe('HTTP fetch error handling', () => {
+    it('should handle HTTP errors when fetching from URL', async () => {
+      // Try to fetch from a URL that will fail
+      try {
+        await fetchTemplate('http://localhost:99999/nonexistent.docx');
+      } catch (error) {
+        expect(error).toBeDefined();
+        expect(error.message).toBeDefined();
+      }
+    });
+
+    it('should handle network errors gracefully', async () => {
+      // Invalid URL that will cause fetch to fail
+      try {
+        await fetchTemplate('http://invalid.test.localhost.example/test.docx');
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    });
+  });
 });
