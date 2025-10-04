@@ -172,6 +172,21 @@ describe('XmlParser', () => {
       // Should still extract some text content even from invalid XML
       expect(result.textContent).toBeDefined();
     });
+
+    test('should handle errors in parseXmlContent', () => {
+      // Mock extractTextContent to throw an error
+      const originalExtract = XmlParser.extractTextContent;
+      XmlParser.extractTextContent = () => { throw new Error('Parse error'); };
+
+      try {
+        const result = XmlParser.parseXmlContent('<test>content</test>');
+        expect(result.error).toBeDefined();
+        expect(result.textContent).toBe('');
+        expect(result.hasContent).toBe(false);
+      } finally {
+        XmlParser.extractTextContent = originalExtract;
+      }
+    });
   });
 
   describe('extractTextContent', () => {

@@ -656,5 +656,23 @@ describe('TemplateCache', () => {
 
       memCache.destroy();
     });
+
+    test('should use fallback estimation for circular references', () => {
+      const cache = new TemplateCache({ ttl: 0 });
+
+      // Create object with circular reference
+      const circularObj = { data: 'test' };
+      circularObj.self = circularObj; // Circular reference
+
+      cache.setTemplate('circular', circularObj);
+
+      const stats = cache.getStats();
+
+      // Should still provide memory estimate using fallback
+      expect(stats.memoryEstimate).toBeGreaterThan(0);
+      expect(stats.memoryEstimate).toBe(1024); // Fallback is cache.size * 1024
+
+      cache.destroy();
+    });
   });
 });

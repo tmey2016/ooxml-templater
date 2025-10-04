@@ -810,4 +810,66 @@ describe('ContentDeletion', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('Additional edge cases for 90% coverage', () => {
+    test('should return unknown for unrecognized file types', () => {
+      const directive = {
+        position: { file: 'unknown.abc' },
+        directive: 'DeleteSomethingIfEmpty',
+        cleanName: 'test'
+      };
+
+      const deleteType = contentDeletion.inferDeleteType(directive);
+      expect(deleteType).toBe('unknown');
+    });
+
+    test('should handle processPageDeletions with exception', () => {
+      const directives = new Map();
+      directives.set('document.xml', [{
+        position: { file: 'document.xml', start: 0 },
+        directive: 'DeletePageIfEmpty',
+        cleanName: 'test'
+      }]);
+
+      const modifiedFiles = new Map();
+      modifiedFiles.set('document.xml', null); // This will cause an error
+
+      const results = contentDeletion.processPageDeletions(directives, modifiedFiles);
+
+      expect(results.errors.length).toBeGreaterThan(0);
+      expect(results.success).toBe(false);
+    });
+
+    test('should handle processSlideDeletions with exception', () => {
+      const directives = new Map();
+      directives.set('slide1.xml', [{
+        position: { file: 'ppt/slides/slide1.xml', start: 0 },
+        directive: 'DeleteSlideIfEmpty',
+        cleanName: 'test'
+      }]);
+
+      const modifiedFiles = new Map();
+      const extractedZip = { files: {} };
+
+      const results = contentDeletion.processSlideDeletions(directives, modifiedFiles, extractedZip);
+
+      expect(results).toBeDefined();
+    });
+
+    test('should handle processRowDeletions with exception', () => {
+      const directives = new Map();
+      directives.set('sheet1.xml', [{
+        position: { file: 'xl/worksheets/sheet1.xml', start: 0 },
+        directive: 'DeleteRowIfEmpty',
+        cleanName: 'test'
+      }]);
+
+      const modifiedFiles = new Map();
+      modifiedFiles.set('xl/worksheets/sheet1.xml', '<invalidXml'); // Invalid content
+
+      const results = contentDeletion.processRowDeletions(directives, modifiedFiles);
+
+      expect(results).toBeDefined();
+    });
+  });
 });

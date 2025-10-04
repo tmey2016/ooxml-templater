@@ -384,4 +384,44 @@ describe('PlaceholderSubstitution', () => {
       expect(grouped.get('file2.xml')).toHaveLength(1);
     });
   });
+
+  describe('Edge cases coverage', () => {
+    test('should handle invalid fileMap in substituteDocument', () => {
+      const parseResult = {
+        fileMap: null, // Invalid fileMap
+        placeholders: { all: [], unique: [] },
+      };
+      const data = {};
+      const xmlFiles = [];
+
+      const result = substitution.substituteDocument(parseResult, data, xmlFiles);
+
+      expect(result.success).toBe(true);
+      expect(result.modifiedFiles.size).toBe(0);
+    });
+
+    test('should skip files not found in xmlFiles', () => {
+      const fileMap = new Map();
+      fileMap.set('missing.xml', [{ cleanName: 'test', rawMatch: '(((test)))' }]);
+
+      const parseResult = { fileMap, placeholders: { all: [], unique: [] } };
+      const data = { test: 'value' };
+      const xmlFiles = []; // No matching files
+
+      const result = substitution.substituteDocument(parseResult, data, xmlFiles);
+
+      expect(result.success).toBe(true);
+      expect(result.modifiedFiles.size).toBe(0);
+    });
+
+    test('should handle empty data object', () => {
+      const content = 'Text with (((placeholder)))';
+      const placeholder = { cleanName: 'placeholder', rawMatch: '(((placeholder)))' };
+      const data = {}; // Empty data
+
+      const result = substitution.substitutePlaceholder(content, placeholder, data);
+
+      expect(result.content).toContain('(((placeholder)))'); // Should preserve placeholder
+    });
+  });
 });
