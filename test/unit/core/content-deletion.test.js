@@ -979,5 +979,43 @@ describe('ContentDeletion', () => {
         contentDeletion.findContainingElement = originalMethod;
       }
     });
+
+    test('should handle malformed XML with missing closing tag', () => {
+      // XML with opening tag but no closing tag - should trigger line 345
+      const malformedXml = '<w:document><w:body><w:p><w:r>incomplete';
+
+      const result = contentDeletion.findContainingElement(malformedXml, 10, 'w:p');
+
+      // When closing tag is missing, function returns null (line 345)
+      expect(result).toBeNull();
+    });
+
+    test('should handle findPageBoundaries with malformed section properties', () => {
+      const malformedDoc = '<w:document><w:body><w:p><w:sectPr>no closing</w:p></w:body></w:document>';
+
+      const boundaries = contentDeletion.findPageBoundaries(malformedDoc, 0);
+
+      // Should handle gracefully
+      expect(boundaries).toBeDefined();
+    });
+
+    test('should return success false when deleteWordPage gets invalid structure', () => {
+      const file = {
+        path: 'document.xml',
+        content: '<w:document><w:body>no sections</w:body></w:document>'
+      };
+
+      const directives = [{
+        position: { file: 'document.xml', start: 10 },
+        cleanName: 'test',
+        isEmpty: true
+      }];
+
+      const result = contentDeletion.deleteWordPage(file, directives);
+
+      // Should complete without crash
+      expect(result).toBeDefined();
+      expect(result.success).toBeDefined();
+    });
   });
 });

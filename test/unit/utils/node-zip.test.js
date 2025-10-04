@@ -246,5 +246,25 @@ describe('NodeZipHandler', () => {
         NodeZipHandler.extract('http://remote.example.com/template.zip')
       ).rejects.toThrow('Failed to fetch ZIP file');
     });
+
+    test('should use cache when fetching same URL twice', async () => {
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+      zip.addFile('test.txt', Buffer.from('cached content'));
+      const zipBuffer = zip.toBuffer();
+
+      // First request - should fetch
+      nock('http://cache.example.com')
+        .get('/template.zip')
+        .reply(200, zipBuffer);
+
+      const result1 = await NodeZipHandler.extract('http://cache.example.com/template.zip');
+      expect(result1.files['test.txt']).toBeDefined();
+
+      // Second request - should use cache (no new nock needed)
+      const result2 = await NodeZipHandler.extract('http://cache.example.com/template.zip');
+      expect(result2.files['test.txt']).toBeDefined();
+      expect(result2.files['test.txt'].content).toBe('cached content');
+    });
   });
 });

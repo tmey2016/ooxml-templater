@@ -264,5 +264,20 @@ describe('FetchHandler', () => {
         fetchTemplate('http://test.example.com/forbidden.docx')
       ).rejects.toThrow('403');
     });
+
+    it('should successfully fetch and return buffer from URL', async () => {
+      const testContent = Buffer.from('test document content');
+
+      nock('http://test.example.com')
+        .get('/success.docx')
+        .reply(200, testContent, {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+
+      const result = await fetchTemplate('http://test.example.com/success.docx');
+
+      expect(result).toBeInstanceOf(Buffer);
+      expect(result.toString()).toBe('test document content');
+    });
   });
 });

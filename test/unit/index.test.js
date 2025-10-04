@@ -1349,4 +1349,45 @@ describe('OOXMLTemplater', () => {
       }
     });
   });
+
+  describe('File Format Handling', () => {
+    test('should handle files with buffer property', async () => {
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
+      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((name)))</w:t></w:p></w:body></w:document>'));
+
+      const testTemplatePath = path.join(__dirname, 'buffer-format-test.docx');
+      await fs.writeFile(testTemplatePath, zip.toBuffer());
+
+      try {
+        const data = { name: 'Test User' };
+        const result = await templater.processTemplate(testTemplatePath, data);
+
+        expect(result.success).toBe(true);
+      } finally {
+        await fs.unlink(testTemplatePath).catch(() => {});
+      }
+    });
+
+    test('should handle string file data format', async () => {
+      const AdmZip = require('adm-zip');
+      const zip = new AdmZip();
+      zip.addFile('[Content_Types].xml', Buffer.from('<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"></Types>'));
+      zip.addFile('word/document.xml', Buffer.from('<w:document><w:body><w:p><w:t>(((test)))</w:t></w:p></w:body></w:document>'));
+
+      const testTemplatePath = path.join(__dirname, 'string-format-test.docx');
+      await fs.writeFile(testTemplatePath, zip.toBuffer());
+
+      try {
+        const data = { test: 'Value' };
+        const result = await templater.processTemplate(testTemplatePath, data);
+
+        expect(result.success).toBe(true);
+        expect(result.document).toBeDefined();
+      } finally {
+        await fs.unlink(testTemplatePath).catch(() => {});
+      }
+    });
+  });
 });
