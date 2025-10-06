@@ -84,6 +84,11 @@ class PlaceholderSubstitution {
       });
     }
 
+    // Handle numeric directives - find and replace numbers in ALL XML files (including embedded)
+    if (parseResult.numericDirectives && parseResult.numericDirectives.length > 0) {
+      this.processNumericDirectivesGlobal(parseResult.numericDirectives, data, xmlFiles, modifiedFiles);
+    }
+
     // Handle delete directives
     if (this.options.deleteEmptyElements) {
       this.processDeleteDirectives(
@@ -100,6 +105,54 @@ class PlaceholderSubstitution {
       deletionCandidates: Array.from(deletionCandidates),
       success: this.stats.failedSubstitutions === 0 || !this.options.strictMode,
     };
+  }
+
+  /**
+   * Process numeric directives globally - replace numeric values across ALL files
+   * @param {Array} numericDirectives - Array of numeric directive placeholders
+   * @param {Object} data - Data object
+   * @param {Array} xmlFiles - All XML files
+   * @param {Map} modifiedFiles - Map of modified files
+   */
+  processNumericDirectivesGlobal(numericDirectives, data, xmlFiles, modifiedFiles) {
+    for (const directive of numericDirectives) {
+      const numericValue = directive.numericValue; // e.g., 111111
+      const replacementValue = this.getDataValue(data, directive.cleanName); // e.g., 17.2
+
+      if (replacementValue === null || replacementValue === undefined) {
+        continue; // Skip if no data available
+      }
+
+      // Search through ALL XML files for this numeric value
+      for (const xmlFile of xmlFiles) {
+        const currentContent = modifiedFiles.has(xmlFile.path)
+          ? modifiedFiles.get(xmlFile.path).content
+          : xmlFile.content;
+
+        if (!currentContent) {
+          continue;
+        }
+
+        // Look for the numeric value in XML value tags (Excel format)
+        const numericPattern = new RegExp(`<v>${numericValue}</v>`, 'g');
+
+        if (numericPattern.test(currentContent)) {
+          // Replace all occurrences
+          const newContent = currentContent.replace(
+            numericPattern,
+            `<v>${replacementValue}</v>`
+          );
+
+          modifiedFiles.set(xmlFile.path, {
+            ...xmlFile,
+            content: newContent,
+            modified: true,
+          });
+
+          this.stats.successfulSubstitutions++;
+        }
+      }
+    }
   }
 
   /**
