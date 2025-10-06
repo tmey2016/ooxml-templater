@@ -160,20 +160,28 @@ class OOXMLTemplater {
 
       const data = await response.json();
 
-      // Extract filename if present in response
-      const filename = data.filename || options.defaultFilename || null;
+      // Extract the actual data from various possible response formats
+      const actualData = data.data || data.values || data.placeholders || data;
 
-      return {
-        success: true,
-        data: data.data || data.values || data.placeholders || data,
-        filename: filename,
-        metadata: {
-          fetchedAt: new Date().toISOString(),
-          apiUrl: apiUrl,
-          placeholderCount: placeholders.length,
-        },
-        rawResponse: options.includeRawResponse ? data : undefined,
-      };
+      // By default, return just the data object for simpler API usage
+      // Set returnFullResponse option to get metadata wrapper
+      if (options.returnFullResponse) {
+        const filename = data.filename || options.defaultFilename || null;
+        return {
+          success: true,
+          data: actualData,
+          filename: filename,
+          metadata: {
+            fetchedAt: new Date().toISOString(),
+            apiUrl: apiUrl,
+            placeholderCount: placeholders.length,
+          },
+          rawResponse: options.includeRawResponse ? data : undefined,
+        };
+      }
+
+      // Simple return - just the data object
+      return actualData;
     } catch (error) {
       return {
         success: false,
@@ -230,12 +238,13 @@ class OOXMLTemplater {
       for (const [filePath, fileData] of Object.entries(originalFiles)) {
         if (typeof fileData === 'string') {
           modifiedFileStructure[filePath] = fileData;
-        } else if (fileData && fileData.content !== undefined) {
-          // File object with content property
-          modifiedFileStructure[filePath] = fileData.content;
         } else if (fileData && fileData.buffer) {
-          // File object with buffer property
-          modifiedFileStructure[filePath] = fileData.buffer;
+          // Use buffer for binary files, content for XML files
+          const isXmlFile = filePath.endsWith('.xml') || filePath.endsWith('.rels');
+          modifiedFileStructure[filePath] = isXmlFile && fileData.content ? fileData.content : fileData.buffer;
+        } else if (fileData && fileData.content !== undefined) {
+          // File object with content property only (fallback)
+          modifiedFileStructure[filePath] = fileData.content;
         } else {
           modifiedFileStructure[filePath] = fileData;
         }
@@ -243,6 +252,12 @@ class OOXMLTemplater {
 
       // Update with modified XML files
       for (const [filePath, modifiedFile] of substitutionResult.modifiedFiles) {
+        // Check if this is an embedded file path
+        if (filePath.includes('.xlsx/') || filePath.includes('.docx/') || filePath.includes('.pptx/')) {
+          // This is an embedded file - handle separately
+          continue;
+        }
+
         // Extract content from the modified file object
         if (modifiedFile && modifiedFile.content !== undefined) {
           modifiedFileStructure[filePath] = modifiedFile.content;
@@ -250,6 +265,36 @@ class OOXMLTemplater {
           modifiedFileStructure[filePath] = modifiedFile;
         } else {
           modifiedFileStructure[filePath] = modifiedFile;
+        }
+      }
+
+      // Step 6b: Rebuild embedded Office files
+      if (extractedFiles.embeddedFiles) {
+        for (const [embeddedPath, embeddedData] of Object.entries(extractedFiles.embeddedFiles)) {
+          const modifiedEmbeddedFiles = {};
+          let hasModifications = false;
+
+          // Check if any XML files in this embedded file were modified
+          for (const [xmlPath, xmlFile] of Object.entries(embeddedData.files)) {
+            const fullPath = `${embeddedPath}/${xmlPath}`;
+            const modifiedFile = substitutionResult.modifiedFiles.get(fullPath);
+
+            if (modifiedFile) {
+              hasModifications = true;
+              modifiedEmbeddedFiles[xmlPath] = modifiedFile.content || modifiedFile;
+            } else {
+              modifiedEmbeddedFiles[xmlPath] = xmlFile;
+            }
+          }
+
+          // If any modifications were made, recreate the embedded file
+          if (hasModifications) {
+            const recreatedBuffer = await this.zipHandler.recreateEmbeddedOfficeFile({
+              path: embeddedPath,
+              files: modifiedEmbeddedFiles,
+            });
+            modifiedFileStructure[embeddedPath] = recreatedBuffer;
+          }
         }
       }
 

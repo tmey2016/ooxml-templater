@@ -54,6 +54,7 @@ class XmlParser {
     const xmlFiles = [];
     const allFiles = extractedZip.getAllFiles();
 
+    // Process main document XML files
     for (const file of allFiles) {
       if (this.isXmlFile(file.name)) {
         const fileInfo = {
@@ -65,6 +66,27 @@ class XmlParser {
           isEmbedded: this.isEmbeddedFile(file.name),
         };
         xmlFiles.push(fileInfo);
+      }
+    }
+
+    // Process embedded Office files (e.g., Excel files within PowerPoint)
+    if (extractedZip.embeddedFiles) {
+      for (const [embeddedPath, embeddedData] of Object.entries(extractedZip.embeddedFiles)) {
+        for (const [xmlPath, xmlFile] of Object.entries(embeddedData.files)) {
+          if (this.isXmlFile(xmlPath)) {
+            const fileInfo = {
+              path: `${embeddedPath}/${xmlPath}`,
+              content: xmlFile.content,
+              buffer: xmlFile.buffer,
+              type: this.getFileType(xmlPath),
+              category: this.getFileCategory(xmlPath),
+              isEmbedded: true,
+              embeddedParent: embeddedPath,
+              embeddedInternalPath: xmlPath,
+            };
+            xmlFiles.push(fileInfo);
+          }
+        }
       }
     }
 

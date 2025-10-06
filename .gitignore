@@ -80,7 +80,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+# dist
 
 # Gatsby files
 .cache/
@@ -142,3 +142,8 @@ MG-*.txt
 MG*
 .claude
 Claude*
+level1.pptx
+output.pptx
+manual-test.js
+test-api.js
+test-request.js
