@@ -206,9 +206,9 @@ Fetch data from an API endpoint.
   - `headers` - Custom HTTP headers
   - `additionalData` - Extra data to include in request
   - `defaultFilename` - Fallback filename
-  - `returnFullResponse` (boolean) - If true, returns `{success, data, filename, metadata}` object instead of just data
+  - `includeRawResponse` (boolean) - If true, includes the raw API response in the result
 
-**Returns:** `Promise<object>` - Data object with values for each placeholder (or full response object if `returnFullResponse: true`)
+**Returns:** `Promise<object>` - Object with `{success, data, filename, metadata}` structure
 
 #### `substituteTemplate(templatePath, data, options)`
 

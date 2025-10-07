@@ -1,4 +1,4 @@
-const OOXMLTemplater = require('./src/index');
+const OOXMLTemplater = require('../../src/index');
 const AdmZip = require('adm-zip');
 const path = require('path');
 const fs = require('fs').promises;

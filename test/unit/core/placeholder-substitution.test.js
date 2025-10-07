@@ -134,8 +134,7 @@ describe('PlaceholderSubstitution', () => {
       const result = substitution.substitutePlaceholder(placeholder, data, content);
 
       expect(result.success).toBe(true);
-      // Numeric directives are markers only - they should be removed from the document
-      // The actual numeric replacement happens globally via processNumericDirectivesGlobal
+      // Numeric directives markers are removed - actual replacement happens globally
       expect(result.content).toBe('');
     });
 

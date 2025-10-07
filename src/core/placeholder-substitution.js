@@ -55,6 +55,12 @@ class PlaceholderSubstitution {
       };
     }
 
+    // Process numeric directives FIRST - find and replace numbers in ALL XML files
+    // This must happen before regular placeholders to catch the numeric values before markers are removed
+    if (parseResult.numericDirectives && parseResult.numericDirectives.length > 0) {
+      this.processNumericDirectivesGlobal(parseResult.numericDirectives, data, xmlFiles, modifiedFiles);
+    }
+
     // Process each file that contains placeholders
     for (const [filePath, placeholders] of parseResult.fileMap) {
       const originalFile = xmlFiles.find((f) => f.path === filePath);
@@ -62,13 +68,21 @@ class PlaceholderSubstitution {
         continue;
       }
 
-      let modifiedContent = originalFile.content;
+      // Start with modified content if it exists (from numeric processing), otherwise use original
+      let modifiedContent = modifiedFiles.has(filePath)
+        ? modifiedFiles.get(filePath).content
+        : originalFile.content;
       const filePlaceholders = [...placeholders].sort(
         (a, b) => b.position.index - a.position.index
       );
 
       // Process placeholders in reverse order to maintain string positions
+      // Skip numeric directives - they're handled globally above
       for (const placeholder of filePlaceholders) {
+        if (placeholder.type === 'numeric') {
+          continue; // Already processed globally
+        }
+
         const result = this.substitutePlaceholder(placeholder, data, modifiedContent);
         modifiedContent = result.content;
 
@@ -82,11 +96,6 @@ class PlaceholderSubstitution {
         content: modifiedContent,
         modified: modifiedContent !== originalFile.content,
       });
-    }
-
-    // Handle numeric directives - find and replace numbers in ALL XML files (including embedded)
-    if (parseResult.numericDirectives && parseResult.numericDirectives.length > 0) {
-      this.processNumericDirectivesGlobal(parseResult.numericDirectives, data, xmlFiles, modifiedFiles);
     }
 
     // Handle delete directives
@@ -116,6 +125,8 @@ class PlaceholderSubstitution {
    */
   processNumericDirectivesGlobal(numericDirectives, data, xmlFiles, modifiedFiles) {
     for (const directive of numericDirectives) {
+      this.stats.totalSubstitutions++;
+
       const numericValue = directive.numericValue; // e.g., 111111
       const replacementValue = this.getDataValue(data, directive.cleanName); // e.g., 17.2
 
@@ -124,6 +135,7 @@ class PlaceholderSubstitution {
           // eslint-disable-next-line no-console
           console.warn(`Missing data for numeric directive: ${directive.cleanName}`);
         }
+        this.stats.failedSubstitutions++;
         continue; // Skip if no data available
       }
 
@@ -131,6 +143,7 @@ class PlaceholderSubstitution {
       // Need to look in both c:v tags (charts) and v tags (Excel)
       let foundAny = false;
       for (const xmlFile of xmlFiles) {
+        // Use modified content if available, otherwise use original
         const currentContent = modifiedFiles.has(xmlFile.path)
           ? modifiedFiles.get(xmlFile.path).content
           : xmlFile.content;
@@ -141,28 +154,28 @@ class PlaceholderSubstitution {
 
         // Look for the numeric value in XML value tags
         // Try both <v> (Excel) and <c:v> (Chart) formats
+        // Also look for the directive pattern to replace/remove it
         const patterns = [
-          new RegExp(`<v>${numericValue}</v>`, 'g'),
-          new RegExp(`<c:v>${numericValue}</c:v>`, 'g')
+          // Plain numeric values in value tags - replace with actual value
+          { pattern: new RegExp(`<v>${numericValue}</v>`, 'g'), replacement: `<v>${replacementValue}</v>` },
+          { pattern: new RegExp(`<c:v>${numericValue}</c:v>`, 'g'), replacement: `<c:v>${replacementValue}</c:v>` },
+          // Directive in value tags - replace with actual value
+          { pattern: new RegExp(`<v>\\(\\(\\(${numericValue}=[^)]+\\)\\)\\)</v>`, 'g'), replacement: `<v>${replacementValue}</v>` },
+          { pattern: new RegExp(`<c:v>\\(\\(\\(${numericValue}=[^)]+\\)\\)\\)</c:v>`, 'g'), replacement: `<c:v>${replacementValue}</c:v>` },
+          // Directive in text - just remove it
+          { pattern: new RegExp(`\\(\\(\\(${numericValue}=[^)]+\\)\\)\\)`, 'g'), replacement: '' }
         ];
 
         let newContent = currentContent;
         let modified = false;
 
-        for (const pattern of patterns) {
-          if (pattern.test(newContent)) {
+        for (const patternObj of patterns) {
+          if (patternObj.pattern.test(newContent)) {
             // Reset lastIndex after test
-            pattern.lastIndex = 0;
-            newContent = newContent.replace(pattern, (match) => {
-              foundAny = true;
-              modified = true;
-              // Preserve the tag format
-              if (match.startsWith('<c:v>')) {
-                return `<c:v>${replacementValue}</c:v>`;
-              } else {
-                return `<v>${replacementValue}</v>`;
-              }
-            });
+            patternObj.pattern.lastIndex = 0;
+            newContent = newContent.replace(patternObj.pattern, patternObj.replacement);
+            foundAny = true;
+            modified = true;
           }
         }
 
@@ -172,12 +185,12 @@ class PlaceholderSubstitution {
             content: newContent,
             modified: true,
           });
-
-          this.stats.successfulSubstitutions++;
         }
       }
 
-      if (!foundAny && this.options.logMissingData) {
+      if (foundAny) {
+        this.stats.successfulSubstitutions++;
+      } else if (this.options.logMissingData) {
         // eslint-disable-next-line no-console
         console.warn(`Numeric value ${numericValue} not found in any XML files for directive ${directive.cleanName}`);
       }
@@ -198,14 +211,14 @@ class PlaceholderSubstitution {
       let replacement;
       let shouldDelete = false;
 
-      // Handle numeric directives - these are just markers, remove them from the document
+      // Handle numeric directives - remove the marker from document
       // The actual numeric replacement happens globally via processNumericDirectivesGlobal
       if (placeholder.type === 'numeric') {
         const newContent = this.replaceInContent(
           content,
           placeholder.position.index,
           placeholder.position.length,
-          '' // Remove the directive placeholder
+          '' // Remove the directive marker
         );
         this.stats.successfulSubstitutions++;
         return {

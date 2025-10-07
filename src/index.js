@@ -163,25 +163,19 @@ class OOXMLTemplater {
       // Extract the actual data from various possible response formats
       const actualData = data.data || data.values || data.placeholders || data;
 
-      // By default, return just the data object for simpler API usage
-      // Set returnFullResponse option to get metadata wrapper
-      if (options.returnFullResponse) {
-        const filename = data.filename || options.defaultFilename || null;
-        return {
-          success: true,
-          data: actualData,
-          filename: filename,
-          metadata: {
-            fetchedAt: new Date().toISOString(),
-            apiUrl: apiUrl,
-            placeholderCount: placeholders.length,
-          },
-          rawResponse: options.includeRawResponse ? data : undefined,
-        };
-      }
-
-      // Simple return - just the data object
-      return actualData;
+      // Always return full response format for consistency
+      const filename = data.filename || options.defaultFilename || null;
+      return {
+        success: true,
+        data: actualData,
+        filename: filename,
+        metadata: {
+          fetchedAt: new Date().toISOString(),
+          apiUrl: apiUrl,
+          placeholderCount: placeholders.length,
+        },
+        rawResponse: options.includeRawResponse ? data : undefined,
+      };
     } catch (error) {
       return {
         success: false,

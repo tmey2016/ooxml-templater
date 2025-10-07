@@ -110,8 +110,12 @@ async function runComprehensiveTests() {
         });
 
         const data = {
-            seventeen: 99.9,
-            thirty: 150.7
+            sales: {
+                q1: 125000,
+                q2: 175000,
+                q3: 195000,
+                q4: 250000
+            }
         };
 
         const substResult = await templater.substituteTemplate('../templates/test-template.pptx', data);
@@ -128,9 +132,9 @@ async function runComprehensiveTests() {
         console.log('✓ Numeric directives processed successfully');
         console.log(`  Successful substitutions: ${substResult.substitution.stats.successfulSubstitutions}`);
 
-        // Verify no warnings for numeric directives
+        // Verify no warnings for numeric directives with data
         const numericWarnings = warnings.filter(w =>
-            w.includes('Missing data') && (w.includes('seventeen') || w.includes('thirty'))
+            w.includes('Missing data for numeric directive') && w.includes('sales.q')
         );
         if (numericWarnings.length > 0) {
             throw new Error(`Found warnings for numeric directives: ${numericWarnings.join(', ')}`);
