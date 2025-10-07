@@ -163,8 +163,15 @@ class OOXMLTemplater {
       // Extract the actual data from various possible response formats
       const actualData = data.data || data.values || data.placeholders || data;
 
-      // Always return full response format for consistency
+      // Return format based on options
       const filename = data.filename || options.defaultFilename || null;
+
+      // If returnRawData is true, return just the data object
+      if (options.returnRawData === true) {
+        return actualData;
+      }
+
+      // Otherwise return full response format for consistency
       return {
         success: true,
         data: actualData,

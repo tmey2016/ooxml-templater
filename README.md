@@ -45,13 +45,34 @@ const templater = new OOXMLTemplater();
 const parseResult = await templater.parseTemplate('./template.docx');
 console.log('Placeholders:', parseResult.placeholders.unique);
 
-// 2. Fetch data from API
-const data = await templater.fetchData('https://api.example.com/data', parseResult.placeholders.unique);
+// 2. Fetch data from API (returns wrapped response by default)
+const response = await templater.fetchData('https://api.example.com/data', parseResult.placeholders.unique);
 
 // 3. Substitute data into template
-const substResult = await templater.substituteTemplate('./template.docx', data);
+const substResult = await templater.substituteTemplate('./template.docx', response.data);
 
 // 4. Save the document
+await templater.saveDocument(substResult.document, './output.docx');
+```
+
+### Simplified Example with returnRawData
+
+```javascript
+const OOXMLTemplater = require('ooxml-templater');
+const templater = new OOXMLTemplater();
+
+// Parse template
+const parseResult = await templater.parseTemplate('./template.docx');
+
+// Fetch data directly (no wrapper)
+const data = await templater.fetchData(
+  'https://api.example.com/data',
+  parseResult.placeholders.unique,
+  { returnRawData: true }  // Returns just the data object
+);
+
+// Substitute and save
+const substResult = await templater.substituteTemplate('./template.docx', data);
 await templater.saveDocument(substResult.document, './output.docx');
 ```
 
@@ -66,10 +87,10 @@ async function generateDocument() {
   const parseResult = await templater.parseTemplate('https://example.com/template.pptx');
 
   // Fetch data
-  const data = await templater.fetchData('https://api.example.com/data', parseResult.placeholders.unique);
+  const response = await templater.fetchData('https://api.example.com/data', parseResult.placeholders.unique);
 
   // Substitute and download
-  const substResult = await templater.substituteTemplate('https://example.com/template.pptx', data);
+  const substResult = await templater.substituteTemplate('https://example.com/template.pptx', response.data);
   templater.downloadDocument(substResult.document, { filename: 'presentation.pptx' });
 }
 ```
@@ -207,8 +228,32 @@ Fetch data from an API endpoint.
   - `additionalData` - Extra data to include in request
   - `defaultFilename` - Fallback filename
   - `includeRawResponse` (boolean) - If true, includes the raw API response in the result
+  - `returnRawData` (boolean) - If true, returns just the data object instead of wrapped response (default: false)
 
-**Returns:** `Promise<object>` - Object with `{success, data, filename, metadata}` structure
+**Returns:** `Promise<object>`
+
+By default (or when `returnRawData: false`), returns wrapped response:
+```javascript
+{
+  success: true,
+  data: object,           // The actual placeholder values
+  filename: string | null,
+  metadata: {
+    fetchedAt: string,
+    apiUrl: string,
+    placeholderCount: number
+  }
+}
+```
+
+When `returnRawData: true`, returns just the data object:
+```javascript
+{
+  name: 'value',
+  email: 'value',
+  // ... placeholder values
+}
+```
 
 #### `substituteTemplate(templatePath, data, options)`
 
