@@ -138,6 +138,7 @@ describe('substituteTemplate Integration Tests', () => {
           <a:p><a:r><a:t>Q4 Report - (((report.quarter)))</a:t></a:r></a:p>
           <a:p><a:r><a:t>Revenue: $(((report.revenue)))</a:t></a:r></a:p>
           <a:p><a:r><a:t>Prepared by: (((report.author)))</a:t></a:r></a:p>
+          <a:p><a:r><a:t>Chart directives: (((50000=data.q1))) (((75000=data.q2))) (((60000=data.q3))) (((90000=data.q4)))</a:t></a:r></a:p>
         </p:txBody>
       </p:sp>
     </p:spTree>
@@ -156,10 +157,10 @@ describe('substituteTemplate Integration Tests', () => {
           <c:val>
             <c:numRef>
               <c:numCache>
-                <c:pt idx="0"><c:v>(((50000=data.q1)))</c:v></c:pt>
-                <c:pt idx="1"><c:v>(((75000=data.q2)))</c:v></c:pt>
-                <c:pt idx="2"><c:v>(((60000=data.q3)))</c:v></c:pt>
-                <c:pt idx="3"><c:v>(((90000=data.q4)))</c:v></c:pt>
+                <c:pt idx="0"><c:v>50000</c:v></c:pt>
+                <c:pt idx="1"><c:v>75000</c:v></c:pt>
+                <c:pt idx="2"><c:v>60000</c:v></c:pt>
+                <c:pt idx="3"><c:v>90000</c:v></c:pt>
               </c:numCache>
             </c:numRef>
           </c:val>

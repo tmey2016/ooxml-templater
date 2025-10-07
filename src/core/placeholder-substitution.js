@@ -120,10 +120,16 @@ class PlaceholderSubstitution {
       const replacementValue = this.getDataValue(data, directive.cleanName); // e.g., 17.2
 
       if (replacementValue === null || replacementValue === undefined) {
+        if (this.options.logMissingData) {
+          // eslint-disable-next-line no-console
+          console.warn(`Missing data for numeric directive: ${directive.cleanName}`);
+        }
         continue; // Skip if no data available
       }
 
       // Search through ALL XML files for this numeric value
+      // Need to look in both c:v tags (charts) and v tags (Excel)
+      let foundAny = false;
       for (const xmlFile of xmlFiles) {
         const currentContent = modifiedFiles.has(xmlFile.path)
           ? modifiedFiles.get(xmlFile.path).content
@@ -133,16 +139,34 @@ class PlaceholderSubstitution {
           continue;
         }
 
-        // Look for the numeric value in XML value tags (Excel format)
-        const numericPattern = new RegExp(`<v>${numericValue}</v>`, 'g');
+        // Look for the numeric value in XML value tags
+        // Try both <v> (Excel) and <c:v> (Chart) formats
+        const patterns = [
+          new RegExp(`<v>${numericValue}</v>`, 'g'),
+          new RegExp(`<c:v>${numericValue}</c:v>`, 'g')
+        ];
 
-        if (numericPattern.test(currentContent)) {
-          // Replace all occurrences
-          const newContent = currentContent.replace(
-            numericPattern,
-            `<v>${replacementValue}</v>`
-          );
+        let newContent = currentContent;
+        let modified = false;
 
+        for (const pattern of patterns) {
+          if (pattern.test(newContent)) {
+            // Reset lastIndex after test
+            pattern.lastIndex = 0;
+            newContent = newContent.replace(pattern, (match) => {
+              foundAny = true;
+              modified = true;
+              // Preserve the tag format
+              if (match.startsWith('<c:v>')) {
+                return `<c:v>${replacementValue}</c:v>`;
+              } else {
+                return `<v>${replacementValue}</v>`;
+              }
+            });
+          }
+        }
+
+        if (modified) {
           modifiedFiles.set(xmlFile.path, {
             ...xmlFile,
             content: newContent,
@@ -151,6 +175,11 @@ class PlaceholderSubstitution {
 
           this.stats.successfulSubstitutions++;
         }
+      }
+
+      if (!foundAny && this.options.logMissingData) {
+        // eslint-disable-next-line no-console
+        console.warn(`Numeric value ${numericValue} not found in any XML files for directive ${directive.cleanName}`);
       }
     }
   }
@@ -169,6 +198,23 @@ class PlaceholderSubstitution {
       let replacement;
       let shouldDelete = false;
 
+      // Handle numeric directives - these are just markers, remove them from the document
+      // The actual numeric replacement happens globally via processNumericDirectivesGlobal
+      if (placeholder.type === 'numeric') {
+        const newContent = this.replaceInContent(
+          content,
+          placeholder.position.index,
+          placeholder.position.length,
+          '' // Remove the directive placeholder
+        );
+        this.stats.successfulSubstitutions++;
+        return {
+          content: newContent,
+          shouldDelete: false,
+          success: true,
+        };
+      }
+
       if (placeholder.type === 'delete') {
         const result = this.processDeleteDirective(placeholder, data);
         replacement = result.replacement;
@@ -179,11 +225,6 @@ class PlaceholderSubstitution {
 
       if (replacement === null || replacement === undefined) {
         return this.handleMissingData(placeholder, content);
-      }
-
-      // Handle numeric directives
-      if (placeholder.type === 'numeric') {
-        replacement = this.processNumericDirective(placeholder, replacement);
       }
 
       const newContent = this.replaceInContent(
