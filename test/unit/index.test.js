@@ -331,6 +331,63 @@ describe('OOXMLTemplater', () => {
       expect(result.filename).toBe('fallback.docx');
     });
 
+    test('should return raw data when returnRawData option is true', async () => {
+      const mockData = {
+        name: 'John Doe',
+        email: 'john@example.com',
+        age: 30,
+      };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: mockData }),
+      });
+
+      const result = await templater.fetchData('https://api.example.com/data', ['name', 'email'], {
+        returnRawData: true,
+      });
+
+      // Should return just the data object, not wrapped
+      expect(result).toEqual(mockData);
+      expect(result.success).toBeUndefined();
+      expect(result.metadata).toBeUndefined();
+    });
+
+    test('should return full response when returnRawData is false', async () => {
+      const mockData = { name: 'Jane Doe' };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: mockData }),
+      });
+
+      const result = await templater.fetchData('https://api.example.com/data', ['name'], {
+        returnRawData: false,
+      });
+
+      // Should return wrapped response
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockData);
+      expect(result.metadata).toBeDefined();
+      expect(result.filename).toBeDefined();
+    });
+
+    test('should return full response by default (returnRawData not specified)', async () => {
+      const mockData = { test: 'value' };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: mockData }),
+      });
+
+      const result = await templater.fetchData('https://api.example.com/data', ['test']);
+
+      // Should return wrapped response by default
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockData);
+      expect(result.metadata).toBeDefined();
+    });
+
     test('should send POST request with correct content type', async () => {
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,

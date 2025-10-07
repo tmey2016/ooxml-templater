@@ -134,7 +134,8 @@ describe('PlaceholderSubstitution', () => {
       const result = substitution.substitutePlaceholder(placeholder, data, content);
 
       expect(result.success).toBe(true);
-      expect(result.content).toBe('75000');
+      // Numeric directives markers are removed - actual replacement happens globally
+      expect(result.content).toBe('');
     });
 
     test('should process delete directive placeholder', () => {
