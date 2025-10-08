@@ -21,6 +21,7 @@ if (isNode) {
 // Core library components
 const PlaceholderParser = require('./core/placeholder-parser');
 const PlaceholderSubstitution = require('./core/placeholder-substitution');
+const TemplateCache = require('./core/template-cache');
 const xmlParser = require('./utils/xml-parser');
 const {
   fetchTemplate,
@@ -45,6 +46,12 @@ class OOXMLTemplater {
     this.placeholderParser = new PlaceholderParser();
     this.placeholderSubstitution = new PlaceholderSubstitution();
     this.xmlParser = xmlParser;
+
+    // Initialize template cache for efficient reuse
+    this.cache = new TemplateCache(options.cacheOptions || {});
+
+    // Internal cache for parsed template data (keyed by templateUrl)
+    this.templateDataCache = new Map();
   }
 
   /**
@@ -66,6 +73,17 @@ class OOXMLTemplater {
 
       // Parse placeholders from all XML files
       const parseResult = this.placeholderParser.parseDocument(extractedFiles, xmlFiles);
+
+      // Cache the parsed template data for reuse in substituteTemplate
+      if (this.options.cacheTemplates !== false) {
+        this.templateDataCache.set(templateUrl, {
+          templateBuffer,
+          extractedFiles,
+          xmlFiles,
+          parseResult,
+          cachedAt: Date.now(),
+        });
+      }
 
       // Detect document metadata
       const documentType = detectDocumentType(templateUrl);
@@ -97,6 +115,7 @@ class OOXMLTemplater {
         metadata: {
           parsedAt: new Date().toISOString(),
           environment: this.options.environment,
+          cached: true,
         },
       };
     } catch (error) {
@@ -206,17 +225,41 @@ class OOXMLTemplater {
    */
   async substituteTemplate(templateUrl, data, options = {}) {
     try {
-      // Step 1: Fetch the template
-      const templateBuffer = await fetchTemplate(templateUrl);
+      let templateBuffer, extractedFiles, xmlFiles, parseResult;
+      let usedCache = false;
 
-      // Step 2: Extract ZIP contents
-      const extractedFiles = await this.zipHandler.extract(templateBuffer);
+      // Check if we have cached parsed data from parseTemplate()
+      const cachedData = this.templateDataCache.get(templateUrl);
 
-      // Step 3: Discover XML files
-      const xmlFiles = this.xmlParser.discoverXmlFiles(extractedFiles);
+      if (cachedData && this.options.cacheTemplates !== false) {
+        // Use cached data - skip fetch/extract/discover/parse steps
+        ({ templateBuffer, extractedFiles, xmlFiles, parseResult } = cachedData);
+        usedCache = true;
+      } else {
+        // Cache miss - perform all steps
+        // Step 1: Fetch the template
+        templateBuffer = await fetchTemplate(templateUrl);
 
-      // Step 4: Parse placeholders from all XML files
-      const parseResult = this.placeholderParser.parseDocument(extractedFiles, xmlFiles);
+        // Step 2: Extract ZIP contents
+        extractedFiles = await this.zipHandler.extract(templateBuffer);
+
+        // Step 3: Discover XML files
+        xmlFiles = this.xmlParser.discoverXmlFiles(extractedFiles);
+
+        // Step 4: Parse placeholders from all XML files
+        parseResult = this.placeholderParser.parseDocument(extractedFiles, xmlFiles);
+
+        // Cache for potential future use
+        if (this.options.cacheTemplates !== false) {
+          this.templateDataCache.set(templateUrl, {
+            templateBuffer,
+            extractedFiles,
+            xmlFiles,
+            parseResult,
+            cachedAt: Date.now(),
+          });
+        }
+      }
 
       // Step 5: Substitute placeholders with data
       const substitutionResult = this.placeholderSubstitution.substituteDocument(
@@ -323,6 +366,7 @@ class OOXMLTemplater {
         metadata: {
           substitutedAt: new Date().toISOString(),
           environment: this.options.environment,
+          usedCache: usedCache,
         },
       };
     } catch (error) {
@@ -553,6 +597,75 @@ class OOXMLTemplater {
         },
       };
     }
+  }
+
+  /**
+   * Clear template parsing cache
+   * @param {string} templateUrl - Optional specific template URL to clear, or clear all if not specified
+   * @returns {object} Clear result with statistics
+   */
+  clearCache(templateUrl = null) {
+    try {
+      if (templateUrl) {
+        // Clear specific template from cache
+        const existed = this.templateDataCache.has(templateUrl);
+        this.templateDataCache.delete(templateUrl);
+
+        return {
+          success: true,
+          cleared: existed ? 1 : 0,
+          templateUrl: templateUrl,
+        };
+      } else {
+        // Clear all cached templates
+        const count = this.templateDataCache.size;
+        this.templateDataCache.clear();
+
+        // Also clear the TemplateCache instance
+        if (this.cache) {
+          this.cache.clear();
+        }
+
+        return {
+          success: true,
+          cleared: count,
+        };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          message: error.message,
+          stack: error.stack,
+        },
+      };
+    }
+  }
+
+  /**
+   * Get cache statistics
+   * @returns {object} Cache statistics
+   */
+  getCacheStats() {
+    const templateCacheEntries = [];
+
+    for (const [url, data] of this.templateDataCache.entries()) {
+      templateCacheEntries.push({
+        url: url,
+        cachedAt: data.cachedAt,
+        age: Date.now() - data.cachedAt,
+        xmlFileCount: data.xmlFiles ? data.xmlFiles.length : 0,
+        placeholderCount: data.parseResult ? data.parseResult.uniquePlaceholderList.length : 0,
+      });
+    }
+
+    return {
+      templateDataCache: {
+        size: this.templateDataCache.size,
+        entries: templateCacheEntries,
+      },
+      templateCache: this.cache ? this.cache.getStats() : null,
+    };
   }
 
   async generateDocument(_template, _data) {

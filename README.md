@@ -2,8 +2,8 @@
 
 A powerful JavaScript library for dynamic placeholder substitution in Office Open XML documents (.docx, .pptx, .xlsx) through direct XML content manipulation, supporting both Node.js and browser environments.
 
-[![Coverage: 94.78%](https://img.shields.io/badge/coverage-94.78%25-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
-[![Tests: 462/462](https://img.shields.io/badge/tests-462%2F462%20passing-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
+[![Coverage: 91.96%](https://img.shields.io/badge/coverage-91.96%25-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
+[![Tests: 475/475](https://img.shields.io/badge/tests-475%2F475%20passing-brightgreen.svg)](https://github.com/tmey2016/ooxml-templater)
 [![Node.js >= 14](https://img.shields.io/badge/node-%3E%3D14-brightgreen.svg)](https://nodejs.org)
 
 ## Features
@@ -178,6 +178,7 @@ const templater = new OOXMLTemplater(options);
 ```
 
 **Options:**
+- `cacheTemplates` (default: true) - Enable automatic caching of parsed template data
 - `cacheOptions` - Template cache configuration
   - `maxSize` (default: 50) - Maximum cached templates
   - `ttl` (default: 30 minutes) - Time to live in milliseconds
@@ -188,7 +189,7 @@ const templater = new OOXMLTemplater(options);
 
 #### `parseTemplate(templatePath)`
 
-Extract all placeholders from a template.
+Extract all placeholders from a template. The parsed template data is automatically cached for efficient reuse in `substituteTemplate()`.
 
 **Parameters:**
 - `templatePath` (string): Path or URL to the template file
@@ -257,7 +258,7 @@ When `returnRawData: true`, returns just the data object:
 
 #### `substituteTemplate(templatePath, data, options)`
 
-Substitute placeholders with data values.
+Substitute placeholders with data values. If the template was previously parsed with `parseTemplate()`, the cached data is reused automatically, avoiding redundant fetching and parsing operations.
 
 **Parameters:**
 - `templatePath` (string): Path or URL to template
@@ -316,6 +317,47 @@ Trigger browser download of document.
   - `filename` (string) - Download filename
   - `mimeType` (string) - Custom MIME type
 
+#### `clearCache(templateUrl)`
+
+Clear cached template data to free memory or force re-parsing.
+
+**Parameters:**
+- `templateUrl` (string, optional): Specific template URL to clear. If omitted, clears all cached templates.
+
+**Returns:** `object`
+```javascript
+{
+  success: true,
+  cleared: number  // Number of entries cleared
+}
+```
+
+#### `getCacheStats()`
+
+Get detailed statistics about cached templates.
+
+**Returns:** `object`
+```javascript
+{
+  templateDataCache: {
+    size: number,
+    entries: [{
+      url: string,
+      cachedAt: number,
+      age: number,
+      xmlFileCount: number,
+      placeholderCount: number
+    }]
+  },
+  templateCache: {
+    hits: number,
+    misses: number,
+    hitRate: number,
+    // ... additional cache metrics
+  }
+}
+```
+
 ## Advanced Usage
 
 ### Custom Headers for API Requests
@@ -331,22 +373,49 @@ const data = await templater.fetchData('https://api.example.com/data', placehold
 
 ### Template Caching
 
+The library automatically caches parsed template data to avoid redundant fetching and parsing operations. When you call `parseTemplate()`, the template is fetched, unzipped, and parsed once - then cached. Subsequent calls to `substituteTemplate()` with the same template URL will reuse the cached data.
+
+**Automatic Caching Example:**
+```javascript
+const templater = new OOXMLTemplater();
+
+// Step 1: Parse template (fetches, unzips, parses, and caches)
+const parseResult = await templater.parseTemplate('./template.docx');
+console.log('Placeholders:', parseResult.placeholders.unique);
+
+// Step 2: Substitute template (reuses cached data - no fetch/parse!)
+const substResult = await templater.substituteTemplate('./template.docx', data);
+console.log('Used cache:', substResult.metadata.usedCache); // true
+
+// Get cache statistics
+const stats = templater.getCacheStats();
+console.log('Cached templates:', stats.templateDataCache.size);
+console.log('Cache entries:', stats.templateDataCache.entries);
+
+// Clear specific template from cache
+templater.clearCache('./template.docx');
+
+// Or clear all cached templates
+templater.clearCache();
+```
+
+**Advanced Cache Configuration:**
 ```javascript
 const templater = new OOXMLTemplater({
+  cacheTemplates: true,   // Enable automatic caching (default: true)
   cacheOptions: {
     maxSize: 100,           // Cache up to 100 templates
     ttl: 60 * 60 * 1000,    // 1 hour TTL
     enableLRU: true         // Evict least recently used
   }
 });
+```
 
-// Get cache statistics
-const stats = templater.cache.getStats();
-console.log('Hit rate:', stats.hitRate);
-console.log('Memory usage:', stats.memoryEstimate);
-
-// Clear cache
-templater.cache.clear();
+**Disable Caching:**
+```javascript
+const templater = new OOXMLTemplater({
+  cacheTemplates: false  // Disable automatic caching
+});
 ```
 
 ### Error Handling
@@ -394,7 +463,7 @@ const result = await templater.substituteTemplate('./template.docx', data, {
 
 ## Testing
 
-The library has **94.78% code coverage** with **462 passing tests**:
+The library has **91.96% code coverage** with **475 passing tests**:
 
 ```bash
 # Run all tests
@@ -425,15 +494,19 @@ npm test -- test/unit/core/placeholder-parser.test.js
 
 ## Performance
 
-- **Template Caching**: Templates are unzipped once and cached
+- **Automatic Caching**: Parsed templates are automatically cached - calling `parseTemplate()` followed by `substituteTemplate()` only fetches/parses once
+- **Template Reuse**: Templates are unzipped once and reused across multiple substitutions
 - **Lazy Loading**: Only modified files are processed
 - **Memory Efficient**: Stream-based ZIP operations
-- **LRU Eviction**: Automatic cache management
+- **LRU Eviction**: Automatic cache management with configurable size and TTL
 
 Benchmark results:
 - Parse 100KB template: ~50ms
-- Substitute 50 placeholders: ~30ms
+- Substitute 50 placeholders (with cache): ~30ms
+- Substitute 50 placeholders (without cache): ~80ms
 - Generate final document: ~40ms
+
+**Performance tip:** When processing the same template multiple times with different data, call `parseTemplate()` once, then call `substituteTemplate()` multiple times to benefit from caching.
 
 ## Browser Compatibility
 
