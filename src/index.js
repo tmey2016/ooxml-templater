@@ -299,6 +299,11 @@ class OOXMLTemplater {
         }
       }
 
+      // Step 6c: Clean up deleted slides from PowerPoint presentations
+      if (substitutionResult.deletionCandidates && substitutionResult.deletionCandidates.length > 0) {
+        this._cleanupDeletedSlides(substitutionResult.deletionCandidates, modifiedFileStructure);
+      }
+
       // Step 7: Create new ZIP with modified files
       const outputBuffer = await this.zipHandler.create(modifiedFileStructure);
 
@@ -338,6 +343,115 @@ class OOXMLTemplater {
         },
       };
     }
+  }
+
+  /**
+   * Clean up all references to deleted PowerPoint slides
+   * Removes slide files, .rels files, and updates presentation.xml,
+   * Content_Types.xml, and presentation.xml.rels
+   * @param {Array<string>} deletionCandidates - File paths marked for deletion
+   * @param {Object} fileStructure - Mutable file structure for ZIP creation
+   */
+  _cleanupDeletedSlides(deletionCandidates, fileStructure) {
+    const deletedSlides = deletionCandidates.filter(
+      (fp) => /^ppt\/slides\/slide\d+\.xml$/i.test(fp)
+    );
+
+    if (deletedSlides.length === 0) {
+      return;
+    }
+
+    // Build a set of slide filenames for quick lookup (e.g. "slide1.xml")
+    const deletedSlideNames = new Set(
+      deletedSlides.map((fp) => fp.split('/').pop())
+    );
+
+    // 1. Remove the slide XML files and their .rels files from the ZIP
+    for (const slidePath of deletedSlides) {
+      delete fileStructure[slidePath];
+      const relsPath = slidePath.replace(
+        /^(ppt\/slides\/)(slide\d+\.xml)$/i,
+        '$1_rels/$2.rels'
+      );
+      delete fileStructure[relsPath];
+    }
+
+    // 2. Update [Content_Types].xml — remove Override entries for deleted slides
+    const contentTypesKey = '[Content_Types].xml';
+    if (fileStructure[contentTypesKey]) {
+      let ct = typeof fileStructure[contentTypesKey] === 'string'
+        ? fileStructure[contentTypesKey]
+        : fileStructure[contentTypesKey].content || fileStructure[contentTypesKey].buffer?.toString('utf8');
+      if (ct) {
+        for (const name of deletedSlideNames) {
+          // Remove <Override PartName="/ppt/slides/slideN.xml" ... />
+          const pattern = new RegExp(
+            `<Override[^>]*PartName=["']/ppt/slides/${this._escapeRegex(name)}["'][^>]*/?>`,
+            'gi'
+          );
+          ct = ct.replace(pattern, '');
+        }
+        fileStructure[contentTypesKey] = ct;
+      }
+    }
+
+    // 3. Update ppt/_rels/presentation.xml.rels — remove Relationship entries for deleted slides
+    const presRelsKey = 'ppt/_rels/presentation.xml.rels';
+    // Map from rId to deleted slide target for use in step 4
+    const deletedRIds = new Set();
+    if (fileStructure[presRelsKey]) {
+      let rels = typeof fileStructure[presRelsKey] === 'string'
+        ? fileStructure[presRelsKey]
+        : fileStructure[presRelsKey].content || fileStructure[presRelsKey].buffer?.toString('utf8');
+      if (rels) {
+        for (const name of deletedSlideNames) {
+          // Capture the rId before removing
+          const idPattern = new RegExp(
+            `<Relationship[^>]*Target=["']slides/${this._escapeRegex(name)}["'][^>]*/>`,
+            'gi'
+          );
+          const matches = rels.match(idPattern);
+          if (matches) {
+            for (const m of matches) {
+              const idMatch = m.match(/Id=["']([^"']+)["']/);
+              if (idMatch) {
+                deletedRIds.add(idMatch[1]);
+              }
+            }
+          }
+          rels = rels.replace(idPattern, '');
+        }
+        fileStructure[presRelsKey] = rels;
+      }
+    }
+
+    // 4. Update ppt/presentation.xml — remove <p:sldId> entries for deleted slides
+    const presentationKey = 'ppt/presentation.xml';
+    if (fileStructure[presentationKey] && deletedRIds.size > 0) {
+      let pres = typeof fileStructure[presentationKey] === 'string'
+        ? fileStructure[presentationKey]
+        : fileStructure[presentationKey].content || fileStructure[presentationKey].buffer?.toString('utf8');
+      if (pres) {
+        for (const rId of deletedRIds) {
+          // Remove <p:sldId id="..." r:id="rIdN"/> (handles both self-closing and open/close)
+          const sldPattern = new RegExp(
+            `<p:sldId[^>]*r:id=["']${this._escapeRegex(rId)}["'][^>]*/?>`,
+            'gi'
+          );
+          pres = pres.replace(sldPattern, '');
+        }
+        fileStructure[presentationKey] = pres;
+      }
+    }
+  }
+
+  /**
+   * Escape special regex characters in a string
+   * @param {string} str - String to escape
+   * @returns {string} Escaped string safe for use in RegExp
+   */
+  _escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**
